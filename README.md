@@ -1,1 +1,1 @@
-  
+The current repository shall contain code fragments forming an engine that is capable of verifying the correctness of particular construction introduced through a sequence of primitive or complex steps - thus a solution of a specific constructive geometry problem. Specifically, here is implemented the algorithm by which we compare this construction with an original solution assumed to be correct in order to be verified their equivalence so that we are able to find out if a particular construction is correct.
