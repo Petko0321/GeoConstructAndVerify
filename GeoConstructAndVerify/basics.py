@@ -1,4 +1,17 @@
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
+class Construction:
+    def __init__(self, vars):
+        for i in range(len(vars)):
+            vars[i] = Symbol(vars[i])
+        self.vars = vars
+        self.left_vars = vars
+    def vars(self):
+        return self.vars
+    def left_vars(self):
+        return self.left_vars
+    def system(self):
+        return self.system
+    
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -99,5 +112,5 @@ def coincide_points(point1, point2):
         return True
     else:
         return False
-init_printing()
+    
 x, y = symbols('x y')
