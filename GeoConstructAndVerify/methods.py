@@ -127,7 +127,7 @@ def Translate(vector, point, variables, construction):
    print("The wanted line segment is from p3(c3, d3) to X(x, y)")
    return system
 
-def Generate_new_vars(number_of_vars):
+def Generate_new_vars(number_of_vars, vars_to_skip):
     alphabet = string.ascii_lowercase
     result = []
     n = 1
@@ -139,7 +139,8 @@ def Generate_new_vars(number_of_vars):
             for _ in range(n):
                 temp = alphabet[num % len(alphabet)] + temp
                 num //= len(alphabet)
-            result.append(temp)
+            if temp not in vars_to_skip:
+                 result.append(temp)
             if len(result) == number_of_vars:
                 break
         n += 1
@@ -153,7 +154,7 @@ c1, d1, c2, d2, c3, d3 = symbols('c1 d1 c2 d2 c3 d3')
 # a, b, e, f, g, h, i, j, k, l, m, n, o, p, v, u, w, z = symbols('a b e f g h i j k l m n o p v u w z')
 # all_variables = [a, b, e, f, g, h, i, j, k, l, m, n, o, p, v, u, w, z]
 # vars = [a, b, e, f, g, h, i, j, k, l, m, n, o, p, v, u, w, z]
-vars = Generate_new_vars(50)
+vars = Generate_new_vars(50, ["c", "d"])
 construction = Construction(vars)
 for i in vars:
     print(i)
