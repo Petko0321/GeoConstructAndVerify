@@ -12,8 +12,8 @@ def perpendicular_bisector(point1, point2, variables, construction):
     c1 = Circle(point1, point2)
     c2 = Circle(point2, point1)
     equations = intersect(c1, c2, variables)
-    print(equations[0])
-    print(equations[1])
+    for eq in equations:
+        print(eq)
     print(f"--> coordinates ({variables[0]}1,{variables[1]}1), ({variables[0]}2,{variables[1]}2) of the two intersecting points")
     return equations
     
@@ -37,10 +37,9 @@ def perpendicular_line(point, line, point_is_on_line, variables, construction):
         f2 = Symbol(f'{construction.vars[1]}2')
         c1 = Circle(point, line.point1)
         equations = intersect(c1, line, [e, f])
-        print(equations[0])
-        all_equations.append(equations[0])
-        print(equations[1])
-        all_equations.append(equations[1])
+        for eq in equations:
+            print(eq)
+            all_equations.append(eq)
         print(f"--> coordinates ({e}1,{f}1), ({e}2,{f}2) of the two intersecting points")
         construction.left_vars.remove(e)
         construction.left_vars.remove(f)
@@ -58,10 +57,9 @@ def perpendicular_line(point, line, point_is_on_line, variables, construction):
         c1 = Circle(line.point1, point)
         c2 = Circle(line.point2, point)
         equations = intersect(c1, c2, [h, k])
-        print(equations[0])
-        all_equations.append(equations[0])
-        print(equations[1])
-        all_equations.append(equations[1])
+        for eq in equations:
+            print(eq)
+            all_equations.append(eq)
         print(f"--> coordinates ({h}1,{k}1), ({h}2,{k}2) of the two intersecting points")
         print(f"The points ({h}1,{k}1) and ({h}2,{k}2) determine the wanted line")
         construction.left_vars.remove(h)
@@ -122,12 +120,11 @@ def Translate(vector, point, variables, construction):
    index = len(construction.vars) - len(construction.left_vars)
    line4 = Line(Point(Symbol(f'{construction.vars[index]}1'), Symbol(f'{construction.vars[index+1]}1')), Point(Symbol(f'{construction.vars[index]}2'), Symbol(f'{construction.vars[index+1]}2')))
    equations = intersect(line3, line4, [x, y])
-   print(equations[0])
-   print(equations[1])
+   for eq in equations:
+            print(eq)
+            system.append(eq)
    print(f"--> coordinates (x, y) of the intersecting point")
    print("The wanted line segment is from p3(c3, d3) to X(x, y)")
-   for eq in equations:
-       system.append(eq)
    return system
 
 def Generate_new_vars(number_of_vars):
