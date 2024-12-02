@@ -56,6 +56,9 @@ class Circle:
         self.point_on_circle = point_on_circle
         if coincide_points(center, point_on_circle):
             print("The circle coincides with its center")
+        h, k = self.center.x, self.center.y
+        x1, y1 = self.point_on_circle.x, self.point_on_circle.y
+        self.squared_radius = (x1 - h)**2 + (y1 - k)**2
 
     def get_equation(self, variables):
         h, k = self.center.x, self.center.y
@@ -66,6 +69,11 @@ class Circle:
 
         # Return the equation of the circle in the form (x-h)^2 + (y-k)^2 = r^2
         return Eq((variables[0] - h)**2 + (variables[1] - k)**2, r_squared)
+    def get_squared_radius(self):
+        h, k = self.center.x, self.center.y
+        x1, y1 = self.point_on_circle.x, self.point_on_circle.y
+        return (x1 - h)**2 + (y1 - k)**2
+
 
 #Returns the intersecting points symbolically
 def intersect(line_or_circle1, line_or_circle2, variables):
@@ -94,17 +102,27 @@ def intersect_two_circles(circle1, circle2, variables):
 # Solve for the intersection point symbolically
     x = variables[0]
     y = variables[1]
+    x1 = Symbol(f'{x}1')
+    y1 = Symbol(f'{y}1')
+    x2 = Symbol(f'{x}2')
+    y2 = Symbol(f'{y}2')
     # variables.remove(x)
     # variables.remove(y)
-    return [circle1.get_equation([x, y]), circle2.get_equation([x, y])]
+    D_squared = Circle(Point(circle1.center.x, circle1.center.y), Point(circle2.center.x, circle2.center.y)).squared_radius;
+    return [circle1.get_equation([x, y]), circle2.get_equation([x, y]), Eq(Circle(Point(x1, y1), Point(x2, y2)).squared_radius, 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)]
 
 def intersect_line_circle(line, circle, variables):
 # Solve for the intersection point symbolically
     x = variables[0]
     y = variables[1]
+    x1 = Symbol(f'{x}1')
+    y1 = Symbol(f'{y}1')
+    x2 = Symbol(f'{x}2')
+    y2 = Symbol(f'{y}2')
     # variables.remove(x)
     # variables.remove(y)
-    return [line.get_equation([x, y]), circle.get_equation([x, y])]
+    d_sqared  = ((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)/Circle(line.point1, line.point2).squared_radius
+    return [line.get_equation([x, y]), circle.get_equation([x, y]), Eq(Circle(Point(x1, y1), Point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_sqared))]
 
 # Checks if points eventually coincide
 def coincide_points(point1, point2):
