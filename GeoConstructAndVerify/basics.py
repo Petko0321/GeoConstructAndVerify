@@ -115,6 +115,14 @@ class Construction:
                     self.used_vars.append(symb)
                     return symb
             n += 1
+    def Get_indexed_vars(self):
+        e = self.used_vars[-2]
+        f = self.used_vars[-1]
+        e1 = Symbol(f'{e}1')
+        e2 = Symbol(f'{e}2')
+        f1 = Symbol(f'{f}1')
+        f2 = Symbol(f'{f}2')
+        return [e1, f1, e2, f2]
 class Point:
     def __init__(self, x, y, construction):
         self.x = x
