@@ -75,8 +75,8 @@ def parallel_line(point, line, construction):
     for eq in equations:
        system.append(eq)
     # point_in_on_line is given false
-    e = construction.used_vars[-1]
-    f = construction.used_vars[-2]
+    e = construction.used_vars[-2]
+    f = construction.used_vars[-1]
     e1 = Symbol(f'{e}1')
     e2 = Symbol(f'{e}2')
     f1 = Symbol(f'{f}1')
@@ -116,7 +116,7 @@ def Translate(vector, point, construction):
    for eq in equations:
        system.append(eq)
    line3 = construction.create_line(construction.create_point(Symbol(f'{construction.used_vars[-2]}1'), Symbol(f'{construction.used_vars[-1]}1')), construction.create_point(Symbol(f'{construction.used_vars[-2]}2'), Symbol(f'{construction.used_vars[-1]}2')))
-   print(line3.get_equation(variables=None))
+   #print(line3.get_equation(variables=None))
    equations = parallel_line(p2, line2, construction)
    for eq in equations:
        system.append(eq)
