@@ -3,8 +3,28 @@ import string
 class Construction:
     def __init__(self, geometrical_objects):
         input_vars = []
-        for i in geometrical_objects:
-            if type(i) is Point:
+        for objec in geometrical_objects:
+            if type(objec) is Line:
+                i = objec.point1
+            if type(objec) is Circle:
+                i = objec.center
+            if type(objec) is Point:
+                i = objec
+            else:
+                TypeError
+            input_vars.append(i.x)
+            input_vars.append(i.y)
+            if len(i.x.name) > 1 or len(i.y.name) > 1:
+                for j, k in i.x.name, i.y.name:
+                    if j.isalpha() and Symbol(f'{j}') not in input_vars:
+                        input_vars.append(Symbol(f'{j}'))
+                    if k.isalpha() and Symbol(f'{k}') not in input_vars:
+                        input_vars.append(Symbol(f'{k}'))
+            if type(object) is not Point:
+                if type(objec) is Line:
+                    i = objec.point2
+                if type(objec) is Circle:
+                    i = objec.point_on_circle
                 input_vars.append(i.x)
                 input_vars.append(i.y)
                 if len(i.x.name) > 1 or len(i.y.name) > 1:
@@ -13,8 +33,6 @@ class Construction:
                             input_vars.append(Symbol(f'{j}'))
                         if k.isalpha() and Symbol(f'{k}') not in input_vars:
                             input_vars.append(Symbol(f'{k}'))
-            else:
-                print("Invalid")
         
         self.input_vars = input_vars
         self.used_vars = self.input_vars
@@ -72,8 +90,8 @@ class Construction:
         y2 = Symbol(f'{y}2')
         # variables.remove(x)
         # variables.remove(y)
-        d_sqared  = ((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)/self.create_circle(line.point1, line.point2).squared_radius
-        return [line.get_equation([x, y]), circle.get_equation([x, y]), Eq(self.create_circle(self.create_point(x1, y1), self.create_point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_sqared))]
+        d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
+        return [line.get_equation([x, y]), circle.get_equation([x, y]), Eq(self.create_circle(self.create_point(x1, y1), self.create_point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_squared))]
         
     def coincide_points(self, point1, point2):
         # Checks if points eventually coincide
