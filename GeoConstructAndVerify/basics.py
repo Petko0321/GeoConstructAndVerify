@@ -7,17 +7,18 @@ class Construction:
         input_vars = []
         input_points = []
         for objec in geometrical_objects:
-            if type(objec) is Line:
+            if isinstance(objec, Line):
                 input_points.append(objec.point1)
                 input_points.append(objec.point2)
-            if type(objec) is Circle:
+            elif isinstance(objec, Circle):
                 input_points.append(objec.center)
                 input_points.append(objec.point_on_circle)
-            if type(objec) is Point:
+            elif isinstance(objec, Point):
                 input_points.append(objec)
             else:
-                TypeError
+                raise TypeError("Unsupported geometrical object type")
         for point in input_points:
+            point.construction = self
             input_vars.append(point.x)
             input_vars.append(point.y)
             
@@ -41,17 +42,27 @@ class Construction:
         return Circle(center, point_on_circle, self)
     
     def intersect(self, line_or_circle1, line_or_circle2):
-        if type(line_or_circle1) is type(line_or_circle2) is Line:
+        if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             result = self.intersect_two_lines(line_or_circle1, line_or_circle2)
-        elif type(line_or_circle1) is type(line_or_circle2) is Circle:
+        elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
             result = self.intersect_two_circles(line_or_circle1, line_or_circle2)
-        elif type(line_or_circle1) is Line and type(line_or_circle2) is Circle:
+        elif isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Circle):
             result = self.intersect_line_circle(line_or_circle1, line_or_circle2)
-        elif type(line_or_circle1) is Circle and type(line_or_circle2) is Line:
+        elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Line):
             result = self.intersect_line_circle(line_or_circle2, line_or_circle1)
         else:
-            print("Invalid argument!")
+            print("Invalid geometrical object type!")
             result = None
+        result = self.prevent_duplicate_points(result, line_or_circle1, line_or_circle2)
+        for eq in result[0]:
+            self.add_equation(eq)
+            print(eq)
+        p1 = result[1]
+        if len(result) == 3:
+            p2 = result[2]
+            print(f"--> coordinates ({p1.x},{p1.y}), ({p2.x},{p2.y}) of the two intersecting points")
+        else:
+            print(f"--> coordinates ({p1.x},{p1.y}) of the intersecting point")
         return result
     
     def intersect_two_lines(self, line1, line2):
@@ -79,6 +90,7 @@ class Construction:
         y2 = p2.y
         d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
         return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_squared))], p1, p2]
+    
         
     def coincide_points(self, point1, point2):
         # Checks if points eventually coincide
@@ -87,22 +99,39 @@ class Construction:
         else:
             return False
         
-    # def Get_new_var(self):
-    #     alphabet = string.ascii_lowercase
-    #     n = 1
-    #     while True:  
-    #         for i in range(len(alphabet) ** n):
-    #             temp = ""
-    #             num = i
-    #             for _ in range(n):
-    #                 temp = alphabet[num % len(alphabet)] + temp
-    #                 num //= len(alphabet)
-    #                 symb = Symbol(f'{temp}')
-    #             if symb not in self.used_vars:
-    #                 self.used_vars.append(symb)
-    #                 return symb
-    #         n += 1
-            
+    def prevent_duplicate_points(self, lst, object1, object2):
+        # Prevents duplicate points
+        equations = lst[0]
+        p1 = lst[1]
+        if len(lst) == 3: 
+            p2 = lst[2]
+            for point in self.points:
+                if point == p1:
+                    continue
+                elif point == p2:
+                    continue
+                if point.is_on(object1) and point.is_on(object2):
+                    equations = [eq.subs({p2.x: point.x, p2.y: point.y}) for eq in equations]
+                    self.used_vars.remove(p2.x)
+                    self.used_vars.remove(p2.y)
+                    self.new_variable_counter -= 2
+                    self.points.remove(p2)
+                    p2 = point
+                    break
+        else:
+            for point in self.points:
+                if point == p1:
+                    continue
+                if point.is_on(object1) and point.is_on(object2):
+                    equations = [eq.subs({p1.x: point.x, p1.y: point.y}) for eq in equations]
+                    self.used_vars.remove(p1.x)
+                    self.used_vars.remove(p1.y)
+                    self.new_variable_counter -= 2
+                    self.points.remove(p1)
+                    p1 = point
+                    break
+        return [equations, p1, p2] if len(lst) == 3 else [equations, p1]
+
     def get_new_var(self):
         while True:
             self.new_variable_counter += 1  
@@ -114,7 +143,7 @@ class Construction:
         self.system.append(equation)
             
     def get_pairs(self):
-        # Returns the pairs of solutions from previous intersection
+        # Returns the pairs of solutions from the previous intersection
         e1 = self.used_vars[-4]
         f1 = self.used_vars[-3]
         e2 = self.used_vars[-1]
@@ -134,11 +163,54 @@ class Point:
         return self.y
  
     def lie_on_line(self, line):
-        if str(simplify(line.get_equation([self.x, self.y]))) == 'True':
+        if line.get_equation([self.x, self.y]) in self.construction.get_system():
             return True
+    def is_on(self, object):
+        if isinstance(object, Line) or isinstance(object, Circle):
+            equation = object.get_equation([self.x, self.y])
+            if simplify(equation) == True:
+                return True
+        else:
+            raise TypeError("Unsupported geometrical object type")
         return False
+        
+    def to_str(self):
+        return f"Point({self.x},{self.y})"
     
+class AribitaryPoint(Point):
+    def __init__(self, construction, gemetrical_object=None, distance=None):
+        self.construction = construction
+        self.x = construction.get_new_var()
+        self.y = construction.get_new_var()
+        self.construction.points.append(self)
 
+        if gemetrical_object is not None:
+            if distance is None:
+                construction.add_equation(gemetrical_object.get_equation([self.x, self.y]) + 1)
+            else:
+                if isinstance(gemetrical_object, Line):
+                    construction.add_equation(
+                        gemetrical_object.get_equation([self.x, self.y]) ** 2,
+                        (gemetrical_object.a ** 2 + gemetrical_object.b ** 2) * distance ** 2
+                    )
+                elif isinstance(gemetrical_object, Circle):
+                    construction.add_equation(
+                        gemetrical_object.get_equation([self.x, self.y]) ** 2,
+                        gemetrical_object.get_squared_radius + 2 * gemetrical_object.get_squared_radius ** 0.5 * distance + distance ** 2
+                    )
+                else:
+                    raise TypeError("Unsupported geometrical object type")
+                
+class Point_on_object(Point):
+    def __init__(self, construction, gemetrical_object):
+        self.construction = construction
+        self.x = construction.get_new_var()
+        self.y = construction.get_new_var()
+        self.construction.points.append(self)
+        try:
+            construction.add_equation(gemetrical_object.get_equation([self.x, self.y]))
+        except: 
+            raise TypeError("Unsupported geometrical object type")
 
 class Line:
     def __init__(self, point1, point2, construction):
@@ -146,8 +218,7 @@ class Line:
         self.point2 = point2
         if construction.coincide_points(point1, point2):
             print("The line is not determined as the two given points coincide.")
-        
-    def get_equation(self, variables):
+    def get_equation(self, variables=None):
         x1, y1 = self.point1.x, self.point1.y
         x2, y2 = self.point2.x, self.point2.y
 
@@ -160,6 +231,12 @@ class Line:
 
         # Return the equation in the form Ax + By + C = 0
         return Eq(A * variables[0] + B * variables[1] + C, 0)
+    def a(self):
+        return self.point1.y - self.point2.y
+    def b(self):
+        return self.point2.x - self.point1.x
+    def c(self):
+        return self.point1.x * self.point2.y - self.point2.x * self.point1.y
 
 
 class Circle:
@@ -172,7 +249,7 @@ class Circle:
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
         self.squared_radius = (x1 - h)**2 + (y1 - k)**2
 
-    def get_equation(self, variables):
+    def get_equation(self, variables=None):
         h, k = self.center.x, self.center.y
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
 
