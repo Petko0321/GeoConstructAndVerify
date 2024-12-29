@@ -1,44 +1,39 @@
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
 import string
+
+from sympy.integrals.integrals import _
 class Construction:
     def __init__(self, geometrical_objects):
         input_vars = []
+        input_points = []
         for objec in geometrical_objects:
             if type(objec) is Line:
-                i = objec.point1
+                input_points.append(objec.point1)
+                input_points.append(objec.point2)
             if type(objec) is Circle:
-                i = objec.center
+                input_points.append(objec.center)
+                input_points.append(objec.point_on_circle)
             if type(objec) is Point:
-                i = objec
+                input_points.append(objec)
             else:
                 TypeError
-            input_vars.append(i.x)
-            input_vars.append(i.y)
-            if len(i.x.name) > 1 or len(i.y.name) > 1:
-                for j, k in i.x.name, i.y.name:
-                    if j.isalpha() and Symbol(f'{j}') not in input_vars:
-                        input_vars.append(Symbol(f'{j}'))
-                    if k.isalpha() and Symbol(f'{k}') not in input_vars:
-                        input_vars.append(Symbol(f'{k}'))
-            if type(object) is not Point:
-                if type(objec) is Line:
-                    i = objec.point2
-                if type(objec) is Circle:
-                    i = objec.point_on_circle
-                input_vars.append(i.x)
-                input_vars.append(i.y)
-                if len(i.x.name) > 1 or len(i.y.name) > 1:
-                    for j, k in i.x.name, i.y.name:
-                        if j.isalpha() and Symbol(f'{j}') not in input_vars:
-                            input_vars.append(Symbol(f'{j}'))
-                        if k.isalpha() and Symbol(f'{k}') not in input_vars:
-                            input_vars.append(Symbol(f'{k}'))
-        
+        for point in input_points:
+            input_vars.append(point.x)
+            input_vars.append(point.y)
+            
         self.input_vars = input_vars
         self.used_vars = self.input_vars
-    def system(self):
+        self.points = input_points
+        self.system = []
+        #self.variable_counter = len(self.used_vars)
+        self.new_variable_counter = 0
+    def get_system(self):
         return self.system
-    def create_point(self, x, y):
+    def create_point(self):
+        new_point = Point(self.get_new_var(), self.get_new_var(), self)
+        self.points.append(new_point)
+        return new_point
+    def point(self, x, y):
         return Point(x,y, self)
     def create_line(self, point1, point2):
         return Line(point1, point2, self)
@@ -60,38 +55,30 @@ class Construction:
         return result
     
     def intersect_two_lines(self, line1, line2):
-        # Solve for the intersection point symbolically
-        x = self.Get_new_var()
-        y = self.Get_new_var()
-        # variables.remove(x)
-        # variables.remove(y)
-        return [line1.get_equation([x, y]), line2.get_equation([x, y])]
+        p = self.create_point()
+        x = p.x
+        y = p.y
+        return [[line1.get_equation([x, y]), line2.get_equation([x, y])], p]
     
     def intersect_two_circles(self, circle1, circle2):
-        # Solve for the intersection point symbolically
-        x = self.Get_new_var()
-        y = self.Get_new_var()
-        x1 = Symbol(f'{x}1')
-        y1 = Symbol(f'{y}1')
-        x2 = Symbol(f'{x}2')
-        y2 = Symbol(f'{y}2')
-        # variables.remove(x)
-        # variables.remove(y)
+        p1 = self.create_point()
+        x1 = p1.x
+        y1 = p1.y
+        p2 = self.create_point()
+        x2 = p2.x
+        y2 = p2.y
         D_squared = self.create_circle(circle1.center, circle2.center).squared_radius;
-        return [circle1.get_equation([x, y]), circle2.get_equation([x, y]), Eq(self.create_circle(self.create_point(x1, y1), self.create_point(x2, y2)).squared_radius, 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)]
+        return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)], p1, p2]
    
     def intersect_line_circle(self, line, circle):
-        # Solve for the intersection point symbolically
-        x = self.Get_new_var()
-        y = self.Get_new_var()
-        x1 = Symbol(f'{x}1')
-        y1 = Symbol(f'{y}1')
-        x2 = Symbol(f'{x}2')
-        y2 = Symbol(f'{y}2')
-        # variables.remove(x)
-        # variables.remove(y)
+        p1 = self.create_point()
+        x1 = p1.x
+        y1 = p1.y
+        p2 = self.create_point()
+        x2 = p2.x
+        y2 = p2.y
         d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
-        return [line.get_equation([x, y]), circle.get_equation([x, y]), Eq(self.create_circle(self.create_point(x1, y1), self.create_point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_squared))]
+        return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_squared))], p1, p2]
         
     def coincide_points(self, point1, point2):
         # Checks if points eventually coincide
@@ -100,29 +87,40 @@ class Construction:
         else:
             return False
         
-    def Get_new_var(self):
-        alphabet = string.ascii_lowercase
-        n = 1
-        while True:  
-            for i in range(len(alphabet) ** n):
-                temp = ""
-                num = i
-                for _ in range(n):
-                    temp = alphabet[num % len(alphabet)] + temp
-                    num //= len(alphabet)
-                    symb = Symbol(f'{temp}')
-                if symb not in self.used_vars:
-                    self.used_vars.append(symb)
-                    return symb
-            n += 1
-    def Get_indexed_vars(self):
-        e = self.used_vars[-2]
-        f = self.used_vars[-1]
-        e1 = Symbol(f'{e}1')
-        e2 = Symbol(f'{e}2')
-        f1 = Symbol(f'{f}1')
-        f2 = Symbol(f'{f}2')
+    # def Get_new_var(self):
+    #     alphabet = string.ascii_lowercase
+    #     n = 1
+    #     while True:  
+    #         for i in range(len(alphabet) ** n):
+    #             temp = ""
+    #             num = i
+    #             for _ in range(n):
+    #                 temp = alphabet[num % len(alphabet)] + temp
+    #                 num //= len(alphabet)
+    #                 symb = Symbol(f'{temp}')
+    #             if symb not in self.used_vars:
+    #                 self.used_vars.append(symb)
+    #                 return symb
+    #         n += 1
+            
+    def get_new_var(self):
+        while True:
+            self.new_variable_counter += 1  
+            symb = Symbol(f'x{self.new_variable_counter}')
+            if symb not in self.used_vars:
+                self.used_vars.append(symb)
+                return symb
+    def add_equation(self, equation):
+        self.system.append(equation)
+            
+    def get_pairs(self):
+        # Returns the pairs of solutions from previous intersection
+        e1 = self.used_vars[-4]
+        f1 = self.used_vars[-3]
+        e2 = self.used_vars[-1]
+        f2 = self.used_vars[-1]
         return [e1, f1, e2, f2]
+    
 class Point:
     def __init__(self, x, y, construction):
         self.x = x
