@@ -1,5 +1,6 @@
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
 import string
+from typing import Optional
 
 from sympy.integrals.integrals import _
 class Construction:
@@ -26,7 +27,6 @@ class Construction:
         self.used_vars = self.input_vars
         self.points = input_points
         self.system = []
-        #self.variable_counter = len(self.used_vars)
         self.new_variable_counter = 0
     def get_system(self):
         return self.system
@@ -36,10 +36,14 @@ class Construction:
         return new_point
     def point(self, x, y):
         return Point(x,y, self)
+    def point_on_object(self, object):
+        return Point_on_object(self, object)
     def create_line(self, point1, point2):
-        return Line(point1, point2, self)
+        new_line = Line(point1, point2, self)
+        return new_line
     def create_circle(self, center, point_on_circle):
-        return Circle(center, point_on_circle, self)
+        new_circle = Circle(center, point_on_circle, self)
+        return new_circle
     
     def intersect(self, line_or_circle1, line_or_circle2):
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
@@ -55,6 +59,8 @@ class Construction:
             result = None
         result = self.prevent_duplicate_points(result, line_or_circle1, line_or_circle2)
         for eq in result[0]:
+            if simplify(eq) == True:
+                eq = True
             self.add_equation(eq)
             print(eq)
         p1 = result[1]
@@ -106,11 +112,9 @@ class Construction:
         if len(lst) == 3: 
             p2 = lst[2]
             for point in self.points:
-                if point == p1:
+                if point == p1 or point == p2:
                     continue
-                elif point == p2:
-                    continue
-                if point.is_on(object1) and point.is_on(object2):
+                elif point.lie_on(object1) and point.lie_on(object2):
                     equations = [eq.subs({p2.x: point.x, p2.y: point.y}) for eq in equations]
                     self.used_vars.remove(p2.x)
                     self.used_vars.remove(p2.y)
@@ -122,7 +126,7 @@ class Construction:
             for point in self.points:
                 if point == p1:
                     continue
-                if point.is_on(object1) and point.is_on(object2):
+                elif point.lie_on(object1) and point.lie_on(object2):
                     equations = [eq.subs({p1.x: point.x, p1.y: point.y}) for eq in equations]
                     self.used_vars.remove(p1.x)
                     self.used_vars.remove(p1.y)
@@ -142,13 +146,8 @@ class Construction:
     def add_equation(self, equation):
         self.system.append(equation)
             
-    def get_pairs(self):
-        # Returns the pairs of solutions from the previous intersection
-        e1 = self.used_vars[-4]
-        f1 = self.used_vars[-3]
-        e2 = self.used_vars[-1]
-        f2 = self.used_vars[-1]
-        return [e1, f1, e2, f2]
+    def get_arbitrary_point(self, object=None, contained_in_object: Optional[bool] = None, distance: Optional[float] =None):
+        return AribitaryPoint(self, object,contained_in_object, distance)
     
 class Point:
     def __init__(self, x, y, construction):
@@ -161,45 +160,47 @@ class Point:
 
     def y(self):
         return self.y
- 
-    def lie_on_line(self, line):
-        if line.get_equation([self.x, self.y]) in self.construction.get_system():
+
+    def lie_on(self, object):
+        if simplify(object.get_equation([self.x, self.y])) == True:
             return True
-    def is_on(self, object):
-        if isinstance(object, Line) or isinstance(object, Circle):
-            equation = object.get_equation([self.x, self.y])
-            if simplify(equation) == True:
-                return True
+        elif object.get_equation([self.x, self.y]) in self.construction.get_system():
+            return True
         else:
-            raise TypeError("Unsupported geometrical object type")
-        return False
+            return False
         
     def to_str(self):
         return f"Point({self.x},{self.y})"
     
 class AribitaryPoint(Point):
-    def __init__(self, construction, gemetrical_object=None, distance=None):
+    def __init__(self, construction, gemetrical_object=None, contained_in_object: Optional[bool] = None, distance: Optional[float] = None):
         self.construction = construction
         self.x = construction.get_new_var()
         self.y = construction.get_new_var()
         self.construction.points.append(self)
 
         if gemetrical_object is not None:
-            if distance is None:
-                construction.add_equation(gemetrical_object.get_equation([self.x, self.y]) + 1)
-            else:
-                if isinstance(gemetrical_object, Line):
-                    construction.add_equation(
-                        gemetrical_object.get_equation([self.x, self.y]) ** 2,
-                        (gemetrical_object.a ** 2 + gemetrical_object.b ** 2) * distance ** 2
-                    )
-                elif isinstance(gemetrical_object, Circle):
-                    construction.add_equation(
-                        gemetrical_object.get_equation([self.x, self.y]) ** 2,
-                        gemetrical_object.get_squared_radius + 2 * gemetrical_object.get_squared_radius ** 0.5 * distance + distance ** 2
-                    )
+            if contained_in_object:
+                if isinstance(gemetrical_object, Line) or isinstance(gemetrical_object, Circle):
+                    construction.add_equation(gemetrical_object.get_equation([self.x, self.y]))
                 else:
                     raise TypeError("Unsupported geometrical object type")
+            else:
+                if distance is None:
+                    construction.add_equation(gemetrical_object.get_equation([self.x, self.y]).lhs + 1)
+                else:
+                    if isinstance(gemetrical_object, Line):
+                        construction.add_equation(
+                            gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
+                            (gemetrical_object.a ** 2 + gemetrical_object.b ** 2) * distance ** 2
+                        )
+                    elif isinstance(gemetrical_object, Circle):
+                        construction.add_equation(
+                            gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
+                            gemetrical_object.get_squared_radius() + 2 * gemetrical_object.get_squared_radius() ** 0.5 * distance + distance ** 2
+                        )
+                    else:
+                        raise TypeError("Unsupported geometrical object type")
                 
 class Point_on_object(Point):
     def __init__(self, construction, gemetrical_object):
@@ -221,14 +222,12 @@ class Line:
     def get_equation(self, variables=None):
         x1, y1 = self.point1.x, self.point1.y
         x2, y2 = self.point2.x, self.point2.y
-
         # Coefficients A, B, C for the line equation Ax + By + C = 0
         A = y1 - y2
         B = x2 - x1
         C = x1 * y2 - x2 * y1
         if variables == None:
             return Eq(A * Symbol('x') + B * Symbol('y') + C, 0)
-
         # Return the equation in the form Ax + By + C = 0
         return Eq(A * variables[0] + B * variables[1] + C, 0)
     def a(self):

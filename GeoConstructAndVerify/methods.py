@@ -1,11 +1,11 @@
 
 import math
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
-from basics import Point, Construction
+from basics import AribitaryPoint, Point, Construction
 
 def perpendicular_bisector(point1, point2, construction):
-    # Returns the equations which have their roots the coordinates of the intersecting
-    # points which determine the perpendicular bisector
+    # Returns  equations derived form the construction, the intersecting points which determine
+    # the perpendicular bisector and the perpendicular bisector as Line object
     c1 = construction.create_circle(point1, point2)
     c2 = construction.create_circle(point2, point1)
     equations, p1, p2 = construction.intersect(c1, c2)
@@ -20,8 +20,9 @@ def perpendicular_bisector(point1, point2, construction):
     
 
 def perpendicular_line(point, line, point_is_on_line, construction):
-    # Returns the equations used to construct a perpendicular line
-    # Two possible routes depending upon if the point lies on the line
+    # Returns  equations derived form the construction, the intersecting points which determine
+    # the perpendicular line and the perpendicular line as Line object
+    # Two possible routes depending upon whether the point lies on the line
     all_equations = []
     if point_is_on_line:
         c1 = construction.create_circle(point, line.point1)
@@ -42,6 +43,8 @@ def perpendicular_line(point, line, point_is_on_line, construction):
 
 def parallel_line(point, line, construction):
     # Construct a parallel line through point not lying on a given line
+    # Returns  equations derived form the construction, the intersecting points which determine
+    # the parallel line and the parallel line as Line object
     all_equations = []
     equations, _, _, perpendicular_line1 = perpendicular_line(point, line, False, construction)
     for eq in equations:
@@ -51,7 +54,6 @@ def parallel_line(point, line, construction):
     for eq in equations:
        all_equations.append(eq)
     # point_is_on_line is obviously true 
-    # Has to be considered how to automatize this using a function
     return [all_equations, p1, p2, parallel_line]
 
 
@@ -70,7 +72,9 @@ class Vector:
         return ((self.starting_point.x - self.ending_point.x)**2 + (self.starting_point.y-self.ending_point.y)**2)**(1/2)
     
 def translate_vector(vector, point, construction):
-    # Translate a vector method (not enhanced)
+    # Translate a vector method (not working if all points on the same line)
+    # Returns  equations derived form the construction, the fourth vertex of 
+    # the parallelogram and the wanted vector
    p1 = vector.starting_point
    p2 = vector.ending_point
    p3 = point
@@ -86,52 +90,49 @@ def translate_vector(vector, point, construction):
    equations, p = construction.intersect(line3, line4)
    for eq in equations:
             all_equations.append(eq)
-   print(f"The wanted line segment is from p3(c3, d3) to X({p.x}, {p.y})")
    wanted_vector = Vector(p3, p)
    return [all_equations, p, wanted_vector]
 
-# def translate(vector, point, construction):
-#     # Translate a vector method (enhanced)
-#    p1 = vector.starting_point
-#    p2 = vector.ending_point
-#    p3 = point
-#    line1 = construction.create_line(p1, p2)
-#    if p3.lie_on_line(line1):
-#        print("The point lies on the line")
-#        return translate_vertor(vector, point, construction)
-#    line2 = construction.create_line(p1, p3)
-#    all_equations = []
-#    equations, pt1, pt2 = parallel_line(p3, line1, construction)
-#    for eq in equations:
-#        all_equations.append(eq)
-#        construction.add_equation(eq)
-#    e1, f1, e2, f2 = construction.get_pairs()
-#    line3 = construction.create_line(pt1, pt2)
-#    equations, pt1, pt2 = parallel_line(p2, line2, construction)
-#    for eq in equations:
-#        all_equations.append(eq)
-#        construction.add_equation(eq)
-#    e1, f1, e2, f2 = construction.get_pairs()
-#    line4 = construction.create_line(pt1 , pt2)
-#    equations, p = construction.intersect(line3, line4)
-#    for eq in equations:
-#             print(eq)
-#             all_equations.append(eq)
-#             construction.add_equation(eq)
-#    x, y = construction.used_vars[-2], construction.used_vars[-1]
-#    print(f"--> coordinates ({x}, {y}) of the intersecting point")
-#    print(f"The wanted line segment is from p3(c3, d3) to X({x}, {y})")
-#    return [all_equations, p]
+def translate(vector, point, construction):
+        # Translate a vector method (enhanced)
+        # Returns  equations derived form the construction, the fourth vertex of 
+        # the parallelogram and the wanted vector
+    p1 = vector.starting_point
+    p2 = vector.ending_point
+    p3 = point
+    line1 = construction.create_line(p1, p2)
+    if p3.lie_on(line1):
+        print("The point lies on the line")
+        all_equations = []
+        equations, _, v1 = translate_vector(vector, construction.get_arbitrary_point(line1, False), construction)
+        for eq in equations:
+            all_equations.append(eq)
+        equations, p, wanted_vector = translate_vector(v1, point, construction)
+        for eq in equations:
+            all_equations.append(eq)
+        result = [all_equations, p, wanted_vector]
+    else:
+        print("The point does not lie on the line")
+        result = translate_vector(vector, point, construction)
+    #print(f"The wanted vectror is from ({wanted_vector.starting_point.x}, {wanted_vector.starting_point.y}) to ({wanted_vector.ending_point.x}, {wanted_vector.ending_point.y})")
+    return result
 
-# translate a vector 
+# # Example for translation of a vector
+# # initial points
 # c1, d1, c2, d2, c3, d3 = symbols('c1 d1 c2 d2 c3 d3')
 # p1 = Point(c1, d1, construction=None)
 # p2 = Point(c2, d2, construction=None)
 # p3 = Point(c3, d3, construction=None)
+# # construction
 # cons = Construction([p1, p2, p3])
+# line1 = cons.create_line(p1, p2)
 # v1 = Vector(p1, p2)
-# v2 = translate_vector(v1, p3, cons)
+# p4 = cons.point_on_object(line1)
+# _, _, v3 = translate(v1, p4, cons)
+# print("translated vector")
+# # visualize the points, the system, and variables
 # for point in cons.points:
 #     print(point.to_str())
 # print(cons.get_system())
 # print(cons.used_vars)
+# # End example
