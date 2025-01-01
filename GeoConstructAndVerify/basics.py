@@ -45,7 +45,7 @@ class Construction:
         new_circle = Circle(center, point_on_circle, self)
         return new_circle
     
-    def intersect(self, line_or_circle1, line_or_circle2):
+    def intersect(self, line_or_circle1, line_or_circle2, only_points=False):
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             result = self.intersect_two_lines(line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
@@ -66,8 +66,12 @@ class Construction:
         p1 = result[1]
         if len(result) == 3:
             p2 = result[2]
+            if only_points:
+                result.remove(result[0])
             print(f"--> coordinates ({p1.x},{p1.y}), ({p2.x},{p2.y}) of the two intersecting points")
         else:
+            if only_points:
+                result =  result[1]
             print(f"--> coordinates ({p1.x},{p1.y}) of the intersecting point")
         return result
     
@@ -170,7 +174,7 @@ class Point:
             return False
         
     def to_str(self):
-        return f"Point({self.x},{self.y})"
+        return f"Point({self.x},{self.y}) : {type(self).__name__}"
     
 class AribitaryPoint(Point):
     def __init__(self, construction, gemetrical_object=None, contained_in_object: Optional[bool] = None, distance: Optional[float] = None):
@@ -243,7 +247,7 @@ class Circle:
         self.center = center
         self.point_on_circle = point_on_circle
         if construction.coincide_points(center, point_on_circle):
-            print("The circle coincides with its center")
+            print(f"The circle coincides with its center ({center.x},{center.y})")
         h, k = self.center.x, self.center.y
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
         self.squared_radius = (x1 - h)**2 + (y1 - k)**2
