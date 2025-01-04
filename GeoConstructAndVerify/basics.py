@@ -97,7 +97,7 @@ class Construction:
             result = None
         result = self.prevent_duplicate_points(result, line_or_circle1, line_or_circle2)
         for eq in result[0]:
-            if simplify(eq) == True:
+            if simplify(eq) == True or eq in self.system:
                 eq = True
             self.add_equation(eq)
             print(eq)
@@ -127,7 +127,8 @@ class Construction:
         x2 = p2.x
         y2 = p2.y
         D_squared = self.create_circle(circle1.center, circle2.center).squared_radius;
-        return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)], p1, p2]
+        distance_equation = Eq(D_squared * self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4 * circle1.squared_radius * D_squared + (circle1.squared_radius - circle2.squared_radius + D_squared)**2)
+        return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), distance_equation], p1, p2]
    
     def intersect_line_circle(self, line, circle):
         p1 = self.create_point()
@@ -137,7 +138,8 @@ class Construction:
         x2 = p2.x
         y2 = p2.y
         d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
-        return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4*(circle.squared_radius - d_squared))], p1, p2]
+        distance_equation = Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius * self.create_circle(line.point1, line.point2).squared_radius, 4 * self.create_circle(line.point1, line.point2).squared_radius*(circle.squared_radius - d_squared))
+        return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
     
         
     def coincide_points(self, point1, point2):
@@ -212,13 +214,13 @@ class Point:
         elif object.get_equation([self.x, self.y]) in self.construction.get_system():
             return True
         else:
-            return False
+            return None
         
     def to_str(self):
         return f"Point({self.x},{self.y}) : {type(self).__name__}"
     
 class AribitaryPoint(Point):
-    def __init__(self, construction, gemetrical_object=None, distance: Optional[float] = None):
+    def __init__(self, construction, geometrical_object=None, distance: Optional[float] = None):
         if distance is None:
             distance = 0
         self.construction = construction
@@ -226,18 +228,19 @@ class AribitaryPoint(Point):
         self.y = construction.get_new_var()
         self.construction.points.append(self)
 
-        if gemetrical_object is not None:
-            construction.add_equation(gemetrical_object.get_equation([self.x, self.y]).lhs + 1)
-            if distance !=0:
-                if isinstance(gemetrical_object, Line):
+        if geometrical_object is not None:
+            if distance == 0:
+                construction.add_equation(geometrical_object.get_equation([self.x, self.y]).lhs)
+            else:
+                if isinstance(geometrical_object, Line):
                         construction.add_equation(
-                            gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
-                            (gemetrical_object.a ** 2 + gemetrical_object.b ** 2) * distance ** 2
+                            Eq(geometrical_object.get_equation([self.x, self.y]).lhs ** 2,
+                            (geometrical_object.a() ** 2 + geometrical_object.b() ** 2) * distance ** 2)
                         )
-                elif isinstance(gemetrical_object, Circle):
+                elif isinstance(geometrical_object, Circle):
                         construction.add_equation(
-                            gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
-                            gemetrical_object.get_squared_radius() + 2 * gemetrical_object.get_squared_radius() ** 0.5 * distance + distance ** 2
+                            Eq(geometrical_object.get_equation([self.x, self.y]).lhs ** 2,
+                            geometrical_object.get_squared_radius() + 2 * geometrical_object.get_squared_radius() ** 0.5 * distance + distance ** 2)
                         )
                 else:
                     raise TypeError("Unsupported geometrical object type")
@@ -270,7 +273,7 @@ class Circle:
     def __init__(self, center, point_on_circle, construction):
         self.center = center
         self.point_on_circle = point_on_circle
-        if construction.coincide_points(center, point_on_circle):
+        if construction != None and construction.coincide_points(center, point_on_circle):	
             print(f"The circle coincides with its center ({center.x},{center.y})")
         h, k = self.center.x, self.center.y
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y

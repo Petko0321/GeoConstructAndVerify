@@ -145,6 +145,8 @@ def circle_through_3_points(point1, point2, point3, construction, only_circle=Fa
     for eq in equations:
         all_equations.append(eq)
     circle = construction.create_circle(center, point1)
+    construction.add_equation(circle.get_equation([point2.x, point2.y]))
+    construction.add_equation(circle.get_equation([point3.x, point3.y]))
     if only_circle:
         return circle
     else:
