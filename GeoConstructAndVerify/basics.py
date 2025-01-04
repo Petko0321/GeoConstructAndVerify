@@ -1,8 +1,42 @@
-from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
+from sympy import solve, symbols, Symbol, Eq, init_printing, simplify, ring, RR, groebner, fraction, Mul
+from sympy.polys.orderings import monomial_key
 import string
 from typing import Optional
 
 from sympy.integrals.integrals import _
+class Solution:
+    def __init__(self, input_vars, output_vars, construction):
+        self.input_vars = input_vars
+        self.output_vars = output_vars
+        self.construction = construction
+        system_eqs = construction.get_system()
+        self.system=[]
+        for eq in system_eqs:
+            if eq == True:
+                continue
+            expr = eq.lhs - eq.rhs
+            numerator, denominator = expr.as_numer_denom()
+            expr = simplify(Mul(numerator, denominator, evaluate=False))
+            self.system.append(expr)
+        self.synthetic_vars = [var for var in construction.all_vars if var not in input_vars and var not in output_vars]
+        self.all_vars = construction.all_vars
+        #ringg = ring(self.all_vars, RR)[0]
+        order = monomial_key(self.custom_order)
+        self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order=order)
+        
+    def custom_order(self, monomial):
+        # Define the custom monomial order
+        synthetic_part = monomial[:len(self.synthetic_vars)]
+        output_part = monomial[len(self.synthetic_vars):len(self.synthetic_vars) + len(self.output_vars)]
+        input_part = monomial[len(self.synthetic_vars) + len(self.output_vars):]
+        
+        # Priority order: Synthetic > Output > Input
+        return (tuple(-exp for exp in synthetic_part),  
+                tuple(-exp for exp in output_part),
+                tuple(-exp for exp in input_part))
+        
+        
+
 class Construction:
     def __init__(self, geometrical_objects):
         input_vars = []
@@ -24,20 +58,24 @@ class Construction:
             input_vars.append(point.y)
             
         self.input_vars = input_vars
-        self.used_vars = self.input_vars
+        self.all_vars = self.input_vars
         self.points = input_points
         self.system = []
         self.new_variable_counter = 0
     def get_system(self):
         return self.system
+    
     def create_point(self):
         new_point = Point(self.get_new_var(), self.get_new_var(), self)
         self.points.append(new_point)
         return new_point
     def point(self, x, y):
         return Point(x,y, self)
+    def get_arbitrary_point(self, object=None, distance: Optional[float] =None):
+        return AribitaryPoint(self, object, distance)
     def point_on_object(self, object):
-        return Point_on_object(self, object)
+        return AribitaryPoint(self, object)
+    
     def create_line(self, point1, point2):
         new_line = Line(point1, point2, self)
         return new_line
@@ -120,8 +158,8 @@ class Construction:
                     continue
                 elif point.lie_on(object1) and point.lie_on(object2):
                     equations = [eq.subs({p2.x: point.x, p2.y: point.y}) for eq in equations]
-                    self.used_vars.remove(p2.x)
-                    self.used_vars.remove(p2.y)
+                    self.all_vars.remove(p2.x)
+                    self.all_vars.remove(p2.y)
                     self.new_variable_counter -= 2
                     self.points.remove(p2)
                     p2 = point
@@ -132,8 +170,8 @@ class Construction:
                     continue
                 elif point.lie_on(object1) and point.lie_on(object2):
                     equations = [eq.subs({p1.x: point.x, p1.y: point.y}) for eq in equations]
-                    self.used_vars.remove(p1.x)
-                    self.used_vars.remove(p1.y)
+                    self.all_vars.remove(p1.x)
+                    self.all_vars.remove(p1.y)
                     self.new_variable_counter -= 2
                     self.points.remove(p1)
                     p1 = point
@@ -141,17 +179,20 @@ class Construction:
         return [equations, p1, p2] if len(lst) == 3 else [equations, p1]
 
     def get_new_var(self):
+        index = 1
         while True:
-            self.new_variable_counter += 1  
-            symb = Symbol(f'x{self.new_variable_counter}')
-            if symb not in self.used_vars:
-                self.used_vars.append(symb)
+            self.new_variable_counter += 1
+            if self.new_variable_counter %2!=0:
+                symb = Symbol(f'x{index}')
+            else:
+                symb = Symbol(f'y{index}')
+                index += 1
+            if symb not in self.all_vars:
+                self.all_vars.append(symb)
                 return symb
+            
     def add_equation(self, equation):
         self.system.append(equation)
-            
-    def get_arbitrary_point(self, object=None, contained_in_object: Optional[bool] = None, distance: Optional[float] =None):
-        return AribitaryPoint(self, object,contained_in_object, distance)
     
 class Point:
     def __init__(self, x, y, construction):
@@ -177,46 +218,29 @@ class Point:
         return f"Point({self.x},{self.y}) : {type(self).__name__}"
     
 class AribitaryPoint(Point):
-    def __init__(self, construction, gemetrical_object=None, contained_in_object: Optional[bool] = None, distance: Optional[float] = None):
+    def __init__(self, construction, gemetrical_object=None, distance: Optional[float] = None):
+        if distance is None:
+            distance = 0
         self.construction = construction
         self.x = construction.get_new_var()
         self.y = construction.get_new_var()
         self.construction.points.append(self)
 
         if gemetrical_object is not None:
-            if contained_in_object:
-                if isinstance(gemetrical_object, Line) or isinstance(gemetrical_object, Circle):
-                    construction.add_equation(gemetrical_object.get_equation([self.x, self.y]))
-                else:
-                    raise TypeError("Unsupported geometrical object type")
-            else:
-                if distance is None:
-                    construction.add_equation(gemetrical_object.get_equation([self.x, self.y]).lhs + 1)
-                else:
-                    if isinstance(gemetrical_object, Line):
+            construction.add_equation(gemetrical_object.get_equation([self.x, self.y]).lhs + 1)
+            if distance !=0:
+                if isinstance(gemetrical_object, Line):
                         construction.add_equation(
                             gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
                             (gemetrical_object.a ** 2 + gemetrical_object.b ** 2) * distance ** 2
                         )
-                    elif isinstance(gemetrical_object, Circle):
+                elif isinstance(gemetrical_object, Circle):
                         construction.add_equation(
                             gemetrical_object.get_equation([self.x, self.y]).lhs ** 2,
                             gemetrical_object.get_squared_radius() + 2 * gemetrical_object.get_squared_radius() ** 0.5 * distance + distance ** 2
                         )
-                    else:
-                        raise TypeError("Unsupported geometrical object type")
-                
-class Point_on_object(Point):
-    def __init__(self, construction, gemetrical_object):
-        self.construction = construction
-        self.x = construction.get_new_var()
-        self.y = construction.get_new_var()
-        self.construction.points.append(self)
-        try:
-            construction.add_equation(gemetrical_object.get_equation([self.x, self.y]))
-        except: 
-            raise TypeError("Unsupported geometrical object type")
-
+                else:
+                    raise TypeError("Unsupported geometrical object type")
 class Line:
     def __init__(self, point1, point2, construction):
         self.point1 = point1

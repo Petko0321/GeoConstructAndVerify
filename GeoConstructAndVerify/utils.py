@@ -130,72 +130,22 @@ def translate(vector, point, construction, only_vector=False):
     if only_vector:
         return result[2]
     return result
-
-# # Example of translation of a vector
-# # initial distinct points
-# c1, d1, c2, d2, c3, d3 = symbols('c1 d1 c2 d2 c3 d3')
-# p1 = Point(c1, d1, construction=None)
-# p2 = Point(c2, d2, construction=None)
-# p3 = Point(c3, d3, construction=None)
-# # construction
-# cons = Construction([p1, p2, p3])
-# line1 = cons.create_line(p1, p2)
-# v1 = Vector(p1, p2)
-# v3 = translate(v1, p3, cons, True)
-# print("translated vector")
-# # when all points are on the same line
-# p4 = cons.point_on_object(line1)
-# v4 = translate(v1, p4, cons, True)
-# print("translated vector")
-# # visualize the points, the system, and variables
-# print("All points:")
-# for point in cons.points:
-#     print(point.to_str())
-# print("Construction system:")
-# print(cons.get_system())
-# print(cons.used_vars)
-# # End example
-
-# # Example of separating a segment into n equal parts
-# # initial points - the vertices of the segment
-# a1, b1, a2, b2 = symbols('a1 b1 a2 b2')
-# p1 = Point(a1, b1, construction=None)
-# p2 = Point(a2, b2, construction=None)
-# print("Enter n:")
-# n = int(input())
-# # construction
-# cons = Construction([p1, p2])
-# line1 = cons.create_line(p1, p2)
-# arib1 = cons.get_arbitrary_point(line1, False)
-# line2 = cons.create_line(p1, arib1)
-# current_center = arib1
-# current_point_on_circle = p1
-# points_on_line2 = []
-# for i in range(1, n):
-#     print(f"Step {i}")
-#     points_on_line2.append(current_center)
-#     cr = cons.create_circle(current_center, current_point_on_circle)
-#     p3, _ = cons.intersect(cr, line2, True)
-#     current_point_on_circle = current_center
-#     current_center = p3
-# print("End for loop")
-# line3 = cons.create_line(current_center, p2)
-# points = []
-# for point in points_on_line2:
-#     print(f"Step {point.to_str()}")
-#     current_line = parallel_line(point, line3, cons, True)
-#     p = cons.intersect(current_line, line1, True)
-#     points.append(p)
-# print(f"The points which seperate the segment into {n} equal parts are:")
-# for point in points:
-#     print(point.to_str())
-# print("finished")
-# # visualize the points, the system, and variables
-# print("All points:")
-# for point in cons.points:
-#     print(point.to_str())
-# print("Construction system:")
-# print(cons.get_system())
-# print(cons.used_vars)
-# # End example
-    
+def circle_through_3_points(point1, point2, point3, construction, only_circle=False):
+    # Construct a circle through 3 points
+    # Returns  equations derived form the construction, the center of the circle and the radius
+    # of the circle
+    all_equations = []
+    equations, _, _, perpendicular_bisector1 = perpendicular_bisector(point1, point2, construction)
+    for eq in equations:
+        all_equations.append(eq)
+    equations, _, _, perpendicular_bisector2 = perpendicular_bisector(point2, point3, construction)
+    for eq in equations:
+        all_equations.append(eq)
+    equations, center = construction.intersect(perpendicular_bisector1, perpendicular_bisector2)
+    for eq in equations:
+        all_equations.append(eq)
+    circle = construction.create_circle(center, point1)
+    if only_circle:
+        return circle
+    else:
+        return [all_equations, center, circle]
