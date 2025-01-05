@@ -1,7 +1,7 @@
 
 import math
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
-from basics import AribitaryPoint, Point, Construction
+from basics import AribitaryPoint, Point, Construction, Square
 
 def perpendicular_bisector(point1, point2, construction, only_line=False):
     # Returns  equations derived form the construction, the intersecting points which determine
@@ -21,6 +21,29 @@ def perpendicular_bisector(point1, point2, construction, only_line=False):
     # return simplify(l2.get_equation([x, y]))
     # But it's too slow
     
+def midpoint(point1, point2, construction):
+    # Returns the midpoint of two points
+    line1 = construction.create_line(point1, point2)
+    _, _, _, perpendicular_bisector = perpendicular_bisector(point1, point2, construction)
+    p = construction.intersect(line1, perpendicular_bisector, True)
+    return p
+    
+def angle_bisector(point1, point2, point3, construction, only_line=False):
+    # point2 - the vertex of the angle
+    # Returns equations derived form the construction and the angle bisector as Line object
+    all_equations = []
+    line1 = construction.create_line(point2, point3)
+    cr1 = construction.create_circle(point2, point1)
+    equations, p, _ = construction.intersect(cr1, line1)
+    for eq in equations:
+        all_equations.append(eq)
+    equations, _, _, angle_bisector = perpendicular_bisector(point1, p, construction)
+    for eq in equations:
+        all_equations.append(eq)
+    if only_line:
+        return angle_bisector
+    else:
+        return [equations, angle_bisector]
 
 def perpendicular_line(point, line, point_is_on_line, construction, only_line=False):
     # Returns  equations derived form the construction, the intersecting points which determine
@@ -130,6 +153,17 @@ def translate(vector, point, construction, only_vector=False):
     if only_vector:
         return result[2]
     return result
+
+def compass(point1, point2, point3, construction, only_circle=False):
+    # Construct a circle with center at point3 and radius the distance between point1 and point3
+    # Returns  equations derived form the construction and the circle as Circle object
+    equations, p, _ = translate_vector(Vector(point1, point2), point1, construction)
+    circle = construction.create_circle(point3, p)
+    if only_circle:
+        return circle
+    return [equations, circle]
+    
+
 def circle_through_3_points(point1, point2, point3, construction, only_circle=False):
     # Construct a circle through 3 points
     # Returns  equations derived form the construction, the center of the circle and the radius
@@ -151,3 +185,4 @@ def circle_through_3_points(point1, point2, point3, construction, only_circle=Fa
         return circle
     else:
         return [all_equations, center, circle]
+    

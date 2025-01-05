@@ -30,10 +30,11 @@ print(cons.get_system())
 print(cons.all_vars)
 # create a solution
 print("Processing...")
-solution = Solution(input_vars, [p.x, p.y], cons)
-print("End processing. Solution:")
-print(solution.reduced_groebner_basis)
-print("End")
+# EXCECUTES SLOWLY
+# solution = Solution(input_vars, [p.x, p.y], cons)
+# print("End processing. Solution:")
+# print(solution.reduced_groebner_basis)
+# print("End")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")

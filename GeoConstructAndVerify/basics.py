@@ -83,15 +83,15 @@ class Construction:
         new_circle = Circle(center, point_on_circle, self)
         return new_circle
     
-    def intersect(self, line_or_circle1, line_or_circle2, only_points=False):
+    def intersect(self, line_or_circle1, line_or_circle2, point_coordinator=None, only_points=False):
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             result = self.intersect_two_lines(line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
             result = self.intersect_two_circles(line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Circle):
-            result = self.intersect_line_circle(line_or_circle1, line_or_circle2)
+            result = self.intersect_line_circle(line_or_circle1, line_or_circle2, point_coordinator)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Line):
-            result = self.intersect_line_circle(line_or_circle2, line_or_circle1)
+            result = self.intersect_line_circle(line_or_circle2, line_or_circle1, point_coordinator)
         else:
             print("Invalid geometrical object type!")
             result = None
@@ -130,15 +130,21 @@ class Construction:
         distance_equation = Eq(D_squared * self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4 * circle1.squared_radius * D_squared + (circle1.squared_radius - circle2.squared_radius + D_squared)**2)
         return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), distance_equation], p1, p2]
    
-    def intersect_line_circle(self, line, circle):
+    def intersect_line_circle(self, line, circle, point_coordinator=None):
+        # If point_coordinator: [equations, further_point, closer_point] in order to sum segments easily
         p1 = self.create_point()
         x1 = p1.x
         y1 = p1.y
         p2 = self.create_point()
         x2 = p2.x
         y2 = p2.y
-        d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
-        distance_equation = Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius * self.create_circle(line.point1, line.point2).squared_radius, 4 * self.create_circle(line.point1, line.point2).squared_radius*(circle.squared_radius - d_squared))
+        if point_coordinator != None:
+            big_circle = self.create_circle(point_coordinator, p1)
+            small_circle = self.create_circle(point_coordinator, p2)
+            distance_equation = Eq(big_circle.squared_radius**2, (small_circle.squared_radius + 2*(small_circle.squared_radius*circle.squared_radius)**(1/2)+circle.squared_radius)**2)
+        else:
+            d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
+            distance_equation = Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius * self.create_circle(line.point1, line.point2).squared_radius, 4 * self.create_circle(line.point1, line.point2).squared_radius*(circle.squared_radius - d_squared))
         return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
     
         
@@ -294,3 +300,21 @@ class Circle:
         h, k = self.center.x, self.center.y
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
         return (x1 - h)**2 + (y1 - k)**2
+    
+def length_of_segment(p1, p2):
+    return ((p1.x - p2.x)**2 + (p1.y - p2.y)**2)**(1/2)
+
+class Polygon:
+    def __init__(self, points):
+        self.points = points
+
+class Triangle: Polygon
+def __init__(self, points):
+        self.points = points
+        self.surface  = abs((points[0].x*(points[1].y-points[2].y) + points[1].x*(points[2].y-points[0].y) + points[2].x*(points[0].y-points[1].y))/2)
+class Square: Polygon
+def __init__(self, points):
+        self.points = points
+        self.side = length_of_segment(points[0], points[1])
+        self.surface  = self.side**2
+        
