@@ -24,8 +24,8 @@ def perpendicular_bisector(point1, point2, construction, only_line=False):
 def midpoint(point1, point2, construction):
     # Returns the midpoint of two points
     line1 = construction.create_line(point1, point2)
-    _, _, _, perpendicular_bisector = perpendicular_bisector(point1, point2, construction)
-    p = construction.intersect(line1, perpendicular_bisector, True)
+    perpendicular_bisector1 = perpendicular_bisector(point1, point2, construction, True)
+    p = construction.intersect(line1, perpendicular_bisector1, True)
     return p
     
 def angle_bisector(point1, point2, point3, construction, only_line=False):
@@ -51,7 +51,10 @@ def perpendicular_line(point, line, point_is_on_line, construction, only_line=Fa
     # Two possible routes depending upon whether the point lies on the line
     all_equations = []
     if point_is_on_line:
-        c1 = construction.create_circle(point, line.point1)
+        another_point_on_line = line.point1
+        if construction.coincide_points(point, line.point1):
+            another_point_on_line = line.point2
+        c1 = construction.create_circle(point, another_point_on_line)
         equations, p1, p2 = construction.intersect(c1, line)
         for eq in equations:
             all_equations.append(eq)
@@ -157,7 +160,7 @@ def translate(vector, point, construction, only_vector=False):
 def compass(point1, point2, point3, construction, only_circle=False):
     # Construct a circle with center at point3 and radius the distance between point1 and point3
     # Returns  equations derived form the construction and the circle as Circle object
-    equations, p, _ = translate_vector(Vector(point1, point2), point1, construction)
+    equations, p, _ = translate(Vector(point1, point2), point3, construction)
     circle = construction.create_circle(point3, p)
     if only_circle:
         return circle
@@ -185,4 +188,16 @@ def circle_through_3_points(point1, point2, point3, construction, only_circle=Fa
         return circle
     else:
         return [all_equations, center, circle]
-    
+
+def construct_square(point1, point2, construction):
+    # Square with side equal to the segment with endpoints point1 and point2
+    # Returns the square as Square object
+    line1 = construction.create_line(point1, point2)
+    cr1 = construction.create_circle(point2, point1)
+    perpendicular_line1 = perpendicular_line(point2, line1, True, construction, True)
+    point3, _ = construction.intersect(cr1, perpendicular_line1, True)
+    cr2 = construction.create_circle(point1, point2)
+    cr3 = construction.create_circle(point3, point2)
+    point4, _ = construction.intersect(cr2, cr3, True)
+    square = Square(point1, point2, point3, point4)
+    return Square

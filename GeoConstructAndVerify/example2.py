@@ -9,7 +9,7 @@ p2 = Point(a2, b2, construction=None)
 print("Enter n:")
 n = int(input())
 # construction
-cons = Construction([p1, p2])
+cons = Construction(p1, p2)
 line1 = cons.create_line(p1, p2)
 arib1 = cons.get_arbitrary_point(line1, False)
 line2 = cons.create_line(p1, arib1)

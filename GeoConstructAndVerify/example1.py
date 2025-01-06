@@ -12,7 +12,7 @@ p1 = Point(c1, d1, construction=None)
 p2 = Point(c2, d2, construction=None)
 p3 = Point(c3, d3, construction=None)
 # construction
-cons = Construction([p1, p2, p3])
+cons = Construction(p1, p2, p3)
 line1 = cons.create_line(p1, p2)
 v1 = Vector(p1, p2)
 _, p, v3 = translate(v1, p3, cons)

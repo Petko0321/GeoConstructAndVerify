@@ -11,7 +11,7 @@ p2 = Point(a4, b4, construction=None)
 circle1 = Circle(center1, p1, construction=None)
 circle2 = Circle(center2, p2, construction=None)
 # construction
-cons = Construction([circle1, circle2])
+cons = Construction(circle1, circle2)
 line1 = cons.create_line(center1, center2)
 line2 = cons.create_line(p1, p2)
 p3 = cons.get_arbitrary_point(line2, 1)

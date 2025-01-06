@@ -38,7 +38,7 @@ class Solution:
         
 
 class Construction:
-    def __init__(self, geometrical_objects):
+    def __init__(self, *geometrical_objects):
         input_vars = []
         input_points = []
         for objec in geometrical_objects:
@@ -50,8 +50,11 @@ class Construction:
                 input_points.append(objec.point_on_circle)
             elif isinstance(objec, Point):
                 input_points.append(objec)
+            elif isinstance(objec, Polygon):
+                for point in objec.points:
+                    input_points.append(point)
             else:
-                raise TypeError("Unsupported geometrical object type")
+                raise ValueError("Unsupported geometrical object type")
         for point in input_points:
             point.construction = self
             input_vars.append(point.x)
@@ -83,7 +86,7 @@ class Construction:
         new_circle = Circle(center, point_on_circle, self)
         return new_circle
     
-    def intersect(self, line_or_circle1, line_or_circle2, point_coordinator=None, only_points=False):
+    def intersect(self, line_or_circle1, line_or_circle2, only_points: bool=False, point_coordinator=None):
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             result = self.intersect_two_lines(line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
@@ -200,10 +203,11 @@ class Construction:
                 return symb
             
     def add_equation(self, equation):
-        self.system.append(equation)
+        if equation != True:
+            self.system.append(equation)
     
 class Point:
-    def __init__(self, x, y, construction):
+    def __init__(self, x, y, construction=None):
         self.x = x
         self.y = y
         self.construction = construction
@@ -251,11 +255,11 @@ class AribitaryPoint(Point):
                 else:
                     raise TypeError("Unsupported geometrical object type")
 class Line:
-    def __init__(self, point1, point2, construction):
+    def __init__(self, point1, point2, construction=None):
         self.point1 = point1
         self.point2 = point2
         if construction.coincide_points(point1, point2):
-            print("The line is not determined as the two given points coincide.")
+            raise ValueError(f"The line is not determined as the two given points ({point1.x},{point1.y}) and ({point2.x},{point2.y}) coincide.")
     def get_equation(self, variables=None):
         x1, y1 = self.point1.x, self.point1.y
         x2, y2 = self.point2.x, self.point2.y
@@ -276,11 +280,11 @@ class Line:
 
 
 class Circle:
-    def __init__(self, center, point_on_circle, construction):
+    def __init__(self, center, point_on_circle, construction=None):
         self.center = center
         self.point_on_circle = point_on_circle
         if construction != None and construction.coincide_points(center, point_on_circle):	
-            print(f"The circle coincides with its center ({center.x},{center.y})")
+            raise ValueError(f"The circle coincides with its center ({center.x},{center.y})")
         h, k = self.center.x, self.center.y
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
         self.squared_radius = (x1 - h)**2 + (y1 - k)**2
@@ -305,16 +309,20 @@ def length_of_segment(p1, p2):
     return ((p1.x - p2.x)**2 + (p1.y - p2.y)**2)**(1/2)
 
 class Polygon:
-    def __init__(self, points):
+    def __init__(self, *points, construction=None):
         self.points = points
 
-class Triangle: Polygon
-def __init__(self, points):
+class Triangle(Polygon):
+    def __init__(self, *points, construction=None):
+        if len(points) != 3:
+            raise ValueError("A triangle must be defined by exactly 3 points.")
         self.points = points
         self.surface  = abs((points[0].x*(points[1].y-points[2].y) + points[1].x*(points[2].y-points[0].y) + points[2].x*(points[0].y-points[1].y))/2)
-class Square: Polygon
-def __init__(self, points):
+class Square(Polygon):
+    def __init__(self, *points, construction=None):
+        if len(points) != 4:
+            raise ValueError("A square must be defined by exactly 4 points.")
         self.points = points
-        self.side = length_of_segment(points[0], points[1])
-        self.surface  = self.side**2
+        self.squared_side = Circle(points[0], points[1]).squared_radius
+        self.surface = self.squared_side
         
