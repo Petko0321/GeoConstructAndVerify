@@ -22,7 +22,7 @@ line2 = cons.create_line(p4, p5)
 line3 = cons.create_line(p6, p7)
 p8 = cons.intersect(line2, line3, True)
 radical_axis = perpendicular_line(p8, line1, False, cons, True)
-print("The radical axis completed")
+print("The radical axis constructed")
 # visualize the points, the system, and variables
 print("All points:")
 for point in cons.points:

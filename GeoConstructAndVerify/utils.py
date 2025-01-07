@@ -169,8 +169,7 @@ def compass(point1, point2, point3, construction, only_circle=False):
 
 def circle_through_3_points(point1, point2, point3, construction, only_circle=False):
     # Construct a circle through 3 points
-    # Returns  equations derived form the construction, the center of the circle and the radius
-    # of the circle
+    # Returns  equations derived form the construction, the center of the circle and the circle itself
     all_equations = []
     equations, _, _, perpendicular_bisector1 = perpendicular_bisector(point1, point2, construction)
     for eq in equations:
@@ -188,6 +187,13 @@ def circle_through_3_points(point1, point2, point3, construction, only_circle=Fa
         return circle
     else:
         return [all_equations, center, circle]
+    
+def circle_diameter(point1, point2, construction):
+    # Construct a circle by given diameter introduced through two endpoints
+    # Returns the cirlce
+    center = midpoint(point1, point2, construction)
+    circle = construction.create_circle(center, point1)
+    return circle
 
 def construct_square(point1, point2, construction):
     # Square with side equal to the segment with endpoints point1 and point2
@@ -201,3 +207,4 @@ def construct_square(point1, point2, construction):
     point4, _ = construction.intersect(cr2, cr3, True)
     square = Square(point1, point2, point3, point4)
     return Square
+

@@ -38,7 +38,7 @@ class Solution:
         
 
 class Construction:
-    def __init__(self, *geometrical_objects):
+    def __init__(self, *geometrical_objects, input_equations=None):
         input_vars = []
         input_points = []
         for objec in geometrical_objects:
@@ -64,6 +64,9 @@ class Construction:
         self.all_vars = self.input_vars
         self.points = input_points
         self.system = []
+        if input_equations !=None:
+            for eq in input_equations:
+                self.add_equation(eq)
         self.new_variable_counter = 0
     def get_system(self):
         return self.system
@@ -230,12 +233,16 @@ class Point:
         return f"Point({self.x},{self.y}) : {type(self).__name__}"
     
 class AribitaryPoint(Point):
-    def __init__(self, construction, geometrical_object=None, distance: Optional[float] = None):
+    def __init__(self, construction, geometrical_object=None, distance: Optional[float] = None, coordinates: Optional[list]= None):
         if distance is None:
             distance = 0
         self.construction = construction
-        self.x = construction.get_new_var()
-        self.y = construction.get_new_var()
+        if coordinates == None:
+            self.x = construction.get_new_var()
+            self.y = construction.get_new_var()
+        else:
+            self.x = coordinates[0]
+            self.y = coordinates[1]
         self.construction.points.append(self)
 
         if geometrical_object is not None:
