@@ -1,15 +1,15 @@
-from basics import Point, Construction, Circle, Line
+from basics import Point, Construction, Circle
 from utils import circle_through_3_points, perpendicular_line
 from sympy import symbols
 # Example of construction the radical axis of two circles
 # initial points
 a1, b1, a2, b2, a3, b3, a4, b4 = symbols('a1 b1 a2 b2 a3 b3 a4 b4')
-center1 = Point(a1, b1, construction=None)
-p1 = Point(a2, b2, construction=None)
-center2 = Point(a3, b3, construction=None)
-p2 = Point(a4, b4, construction=None)
-circle1 = Circle(center1, p1, construction=None)
-circle2 = Circle(center2, p2, construction=None)
+center1 = Point(a1, b1)
+p1 = Point(a2, b2)
+center2 = Point(a3, b3)
+p2 = Point(a4, b4)
+circle1 = Circle(center1, p1)
+circle2 = Circle(center2, p2)
 # construction
 cons = Construction(circle1, circle2)
 line1 = cons.create_line(center1, center2)

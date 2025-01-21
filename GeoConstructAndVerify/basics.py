@@ -5,7 +5,7 @@ from typing import Optional
 
 from sympy.integrals.integrals import _
 class Solution:
-    def __init__(self, input_vars, output_vars, construction):
+    def __init__(self, construction, output_vars, input_vars=[]):
         self.input_vars = input_vars
         self.output_vars = output_vars
         self.construction = construction
@@ -14,12 +14,17 @@ class Solution:
         for eq in system_eqs:
             if eq == True:
                 continue
+            if not isinstance(eq, Eq):
+                print(f"Here: {eq}")
             expr = eq.lhs - eq.rhs
             numerator, denominator = expr.as_numer_denom()
             expr = simplify(Mul(numerator, denominator, evaluate=False))
             self.system.append(expr)
-        self.synthetic_vars = [var for var in construction.all_vars if var not in input_vars and var not in output_vars]
-        self.all_vars = construction.all_vars
+            self.all_vars = []
+            for v in construction.all_vars:
+                if isinstance(v, Symbol):
+                    self.all_vars.append(v)
+        self.synthetic_vars = [var for var in self.all_vars if var not in input_vars and var not in output_vars]
         #ringg = ring(self.all_vars, RR)[0]
         order = monomial_key(self.custom_order)
         self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order=order)
@@ -167,17 +172,23 @@ class Construction:
         p1 = lst[1]
         if len(lst) == 3: 
             p2 = lst[2]
+            duplicate_point = p2
             for point in self.points:
                 if point == p1 or point == p2:
                     continue
                 elif point.lie_on(object1) and point.lie_on(object2):
-                    equations = [eq.subs({p2.x: point.x, p2.y: point.y}) for eq in equations]
-                    self.all_vars.remove(p2.x)
-                    self.all_vars.remove(p2.y)
+                    equations = [eq.subs({duplicate_point.x: point.x, duplicate_point.y: point.y}) for eq in equations]
+                    self.all_vars.remove(duplicate_point.x)
+                    self.all_vars.remove(duplicate_point.y)
                     self.new_variable_counter -= 2
-                    self.points.remove(p2)
-                    p2 = point
-                    break
+                    self.points.remove(duplicate_point)
+                    if duplicate_point == p2:
+                        p2 = point
+                    else:
+                        p1 = point
+                        break
+                    duplicate_point = p1
+                    
         else:
             for point in self.points:
                 if point == p1:
@@ -247,7 +258,7 @@ class AribitaryPoint(Point):
 
         if geometrical_object is not None:
             if distance == 0:
-                construction.add_equation(geometrical_object.get_equation([self.x, self.y]).lhs)
+                construction.add_equation(Eq(geometrical_object.get_equation([self.x, self.y]).lhs, 0))
             else:
                 if isinstance(geometrical_object, Line):
                         construction.add_equation(
