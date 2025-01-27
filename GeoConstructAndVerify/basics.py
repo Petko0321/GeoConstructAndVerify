@@ -27,7 +27,7 @@ class Solution:
         self.synthetic_vars = [var for var in self.all_vars if var not in input_vars and var not in output_vars]
         #ringg = ring(self.all_vars, RR)[0]
         order = monomial_key(self.custom_order)
-        self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order=order)
+        self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order="grlex")
         
     def custom_order(self, monomial):
         # Define the custom monomial order
@@ -46,6 +46,8 @@ class Construction:
     def __init__(self, *geometrical_objects, input_equations=None):
         input_vars = []
         input_points = []
+        self.system = []
+        self.distances = []
         for objec in geometrical_objects:
             if isinstance(objec, Line):
                 input_points.append(objec.point1)
@@ -64,11 +66,18 @@ class Construction:
             point.construction = self
             input_vars.append(point.x)
             input_vars.append(point.y)
-            
+
         self.input_vars = input_vars
         self.all_vars = self.input_vars
         self.points = input_points
-        self.system = []
+        for i in range(len(input_points)):
+            for j in range(i + 1, len(input_points)):
+                point1 = input_points[i]
+                point2 = input_points[j]
+                self.add_equation(Eq(((point1.x-point2.x)**2+(point1.y-point2.y)**2)*self.get_new_d(point1, point2), 1))
+        self.input_vars = input_vars
+        self.all_vars = self.input_vars
+        self.points = input_points
         if input_equations !=None:
             for eq in input_equations:
                 self.add_equation(eq)
@@ -137,8 +146,7 @@ class Construction:
         p2 = self.create_point()
         x2 = p2.x
         y2 = p2.y
-        D_squared = self.create_circle(circle1.center, circle2.center).squared_radius;
-        distance_equation = Eq(D_squared * self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius, 4 * circle1.squared_radius * D_squared + (circle1.squared_radius - circle2.squared_radius + D_squared)**2)
+        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2)*self.get_new_d(p1, p2), 1)
         return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), distance_equation], p1, p2]
    
     def intersect_line_circle(self, line, circle, point_coordinator=None):
@@ -149,13 +157,7 @@ class Construction:
         p2 = self.create_point()
         x2 = p2.x
         y2 = p2.y
-        if point_coordinator != None:
-            big_circle = self.create_circle(point_coordinator, p1)
-            small_circle = self.create_circle(point_coordinator, p2)
-            distance_equation = Eq(big_circle.squared_radius**2, (small_circle.squared_radius + 2*(small_circle.squared_radius*circle.squared_radius)**(1/2)+circle.squared_radius)**2)
-        else:
-            d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/(self.create_circle(line.point1, line.point2).squared_radius)
-            distance_equation = Eq(self.create_circle(self.point(x1, y1), self.point(x2, y2)).squared_radius * self.create_circle(line.point1, line.point2).squared_radius, 4 * self.create_circle(line.point1, line.point2).squared_radius*(circle.squared_radius - d_squared))
+        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2)*self.get_new_d(p1, p2), 1)
         return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
     
         
@@ -166,6 +168,17 @@ class Construction:
         else:
             return False
         
+    def not_on_same_line(self, p1, p2, p3):
+        d1 = self.get_d(p1, p2)
+        d2 = self.get_d(p1, p3)
+        d3 = self.get_d(p2, p3)
+        self.add_equation(Eq((d2*d3-d1*d2-d1*d3)*self.get_new_d(), 1))
+        
+    def get_d(self, point1, point2):
+        for d in self.distances:
+            if (d[1] == point1 and d[2] == point2) or (d[1] == point2 and d[2] == point1):
+                return d[0]
+    
     def prevent_duplicate_points(self, lst, object1, object2):
         # Prevents duplicate points
         equations = lst[0]
@@ -214,6 +227,16 @@ class Construction:
                 index += 1
             if symb not in self.all_vars:
                 self.all_vars.append(symb)
+                return symb
+
+    def get_new_d(self, point1=None, point2=None):
+        index = 1
+        while True:
+            symb = Symbol(f'd{index}')
+            index += 1
+            if symb not in self.all_vars:
+                self.all_vars.append(symb)
+                self.distances.append([symb, point1, point2])
                 return symb
             
     def add_equation(self, equation):
