@@ -1,0 +1,66 @@
+from sympy import symbols, solve, groebner
+from basics import Point, Construction
+from utils import perpendicular_line
+import time
+# midpoint of a segment
+# initial points
+start_time = time.time()
+a1, a2, b1, b2, a3, b3 = symbols('a1, a2, b1, b2, a3, b3')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+p3 = Point(a3, b3)
+# construction
+cons = Construction(p1, p2, p3)
+# cons.not_on_same_line(p1, p2, p3)
+line = cons.create_line(p1, p2)
+perp_line = perpendicular_line(p3, line)
+p4 = cons.intersect(line, perp_line)
+print("construction completed")
+print("All points:")
+for point in cons.points:
+    print(point.to_str())
+print("Construction system:")
+print(cons.get_system())
+print(cons.all_vars)
+optimized = cons.optimization_equations
+print(optimized)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")
+# values = {a1: 1, b1: 1, a2: 3, b2: 2, a3: 4, b3: 5}
+x1, y1, x2, y2, d1, d2, d3, d4 = symbols('x1, y1, x2, y2, d1, d2, d3, d4')
+# system = [(eq.lhs - eq.rhs).subs(values) for eq in cons.get_system()]
+# print(system)
+# optimized = [eq.subs(values) for eq in optimized]
+# print(optimized)
+# start_time = time.time()
+# solution = solve(system, x1, y1, x2, y2, d1, d2, d3, d4)
+# print(solution)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Elapsed time: {elapsed_time} seconds")
+# start_time = time.time()
+# solution = solve(optimized, x1, y1, x2, y2, d4)
+# print(solution)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Elapsed time: {elapsed_time} seconds")
+start_time = time.time()
+system = cons.get_system()
+print(system)
+gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
+print(gb)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time} seconds")
+
+start_time = time.time()
+system = cons.input_eqs + optimized
+print(system)
+gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
+print(gb)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time} seconds")
+
+

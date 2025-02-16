@@ -1,0 +1,33 @@
+from basics import Point, Construction
+from utils import perpendicular_bisector, perpendicular_line
+from sympy import symbols, Eq
+import time
+# Construction of angle bisector
+# given points:
+a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+p3 = Point(a3, b3)
+# construction 1
+start_time = time.time()
+cons1 = Construction(p1, p2, p3)
+#cons1.not_on_same_line(p1, p2, p3)
+line1 = cons1.create_line(p1, p2)
+per_line = perpendicular_line(p3, line1, False, cons1, True)
+h1 = cons1.intersect(per_line, line1, True)
+cons1.add_equation(Eq(cons1.get_new_d(p3, h1)*((p3.x-h1.x)**2+(p3.y-h1.y)**2),1))
+line12 = cons1.create_line(p2, p3)
+circle1 = cons1.create_circle(p1, p3)
+_, p4 = cons1.intersect(line1, circle1, True, p2)
+ang_bis1 = perpendicular_bisector(p3, p4, cons1, True)
+#p5 = cons1.get_arbitrary_point(ang_bis1)
+p6 = cons1.intersect(ang_bis1, line12, True)
+print("construction 1 completed")
+# visualize the points, the system, and variables
+print("All points:")
+for point in cons1.points:
+    print(point.to_str())
+print("Construction system:")
+system1 = cons1.get_system()
+print(system1)
+print(cons1.all_vars)

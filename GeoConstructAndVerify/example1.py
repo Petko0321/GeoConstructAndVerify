@@ -6,13 +6,13 @@ import time
 start_time = time.time()
 # Example of translation of a vector
 # initial distinct points
-c1, d1, c2, d2, c3, d3 = symbols('c1 d1 c2 d2 c3 d3')
-input_vars = [c1, d1, c2, d2, c3, d3]
-p1 = Point(c1, d1, construction=None)
-p2 = Point(c2, d2, construction=None)
-p3 = Point(c3, d3, construction=None)
+a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+p3 = Point(a3, b3)
 # construction
 cons = Construction(p1, p2, p3)
+cons.not_on_same_line(p1, p2, p3)
 line1 = cons.create_line(p1, p2)
 v1 = Vector(p1, p2)
 _, p, v3 = translate(v1, p3, cons)
@@ -29,7 +29,7 @@ print("Construction system:")
 print(cons.get_system())
 print(cons.all_vars)
 # create a solution
-print("Processing...")
+# print("Processing...")
 # EXCECUTES SLOWLY
 # solution = Solution(input_vars, [p.x, p.y], cons)
 # print("End processing. Solution:")

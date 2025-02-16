@@ -20,5 +20,5 @@ for point in cons.points:
 print("Construction system:")
 print(cons.get_system())
 print(cons.all_vars)
-solution = Solution(cons, [a1, b1, a2, b2], [p4.x, p4.y])
-print(solution.reduced_groebner_basis) 
+# solution = Solution(cons, [a1, b1, a2, b2], [p4.x, p4.y])
+# print(solution.reduced_groebner_basis) 

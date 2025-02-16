@@ -1,0 +1,49 @@
+from sympy import symbols, solve, groebner, Eq, simplify
+import time
+a1, b1, a2, b2, a3, b3, d1, d2, d3, x1, y1, d4, x2, y2 = symbols('a1, b1, a2, b2, a3, b3, d1, d2, d3, x1, y1, d4, x2, y2')
+# sys = [Eq(d1*((a1 - a2)**2 + (b1 - b2)**2), 1), Eq(d2*((a1 - a3)**2 + (b1 - b3)**2), 1), Eq(d3*((a2 - a3)**2 + (b2 - b3)**2), 1), Eq((-a1 + x1)**2 + (-b1 + y1)**2, (-a1 + a3)**2 + (-b1 + b3)**2), Eq((-a2 + x1)**2 + (-b2 + y1)**2, (-a2 + a3)**2 + (-b2 + b3)**2), Eq(d4*((-a3 + x1)**2 + (-b3 + y1)**2), 1), Eq(a1*b2 - a2*b1 + x2*(b1 - b2) + y2*(-a1 + a2), 0), Eq(-a3*y1 + b3*x1 + x2*(-b3 + y1) + y2*(a3 - x1), 0)]
+# values = {a1: 1, b1: 1, a2: 3, b2: 2, a3: 4, b3: 5}
+# system = [(eq.lhs - eq.rhs).subs(values) for eq in sys]
+# print(system)
+# start_time = time.time()
+# solution = solve(system, x1, y1, x2, y2, d1, d2, d3, d4)
+# print(solution)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Elapsed time: {elapsed_time} seconds")
+
+# start_time = time.time()
+# gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='lex')
+# print(gb)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Elapsed time: {elapsed_time} seconds")
+
+# start_time = time.time()
+# system = [x1 - solution[0][0], y1 - solution[0][1], x2 - solution[0][2], y2 - solution[0][3]]
+# # print(system)
+# # solution = solve(system, x1, y1, x2, y2, d1, d2, d3, d4)
+# gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='lex')
+# print(gb)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Elapsed time: {elapsed_time} seconds")
+from sympy import symbols, solve, groebner, Eq, simplify
+import time
+x1, y1, x2, y2 = symbols('x1 y1 x2 y2')
+m1, n1, m2, n2, r1, r2, d = symbols('m1, n1, m2, n2, r1, r2, d')
+eq1 = (x1 - m1)**2 + (y1 - n1)**2 - r1**2
+eq2 = (x1 - m2)**2 + (y1 - n2)**2 - r2**2
+eq3 = (x2 - m1)**2 + (y2 - n1)**2 - r1**2
+eq4 = (x2 - m2)**2 + (y2 - n2)**2 - r2**2
+system = [eq1 - eq2, eq1 + eq2, eq3 - eq4, eq3 + eq4, d*((x1-x2)**2+(y1-y2)**2) - 1]
+# print(solve(system, x1, y1, x2, y2, d))
+start_time = time.time()
+gb = groebner(system, x1, y1, x2, y2, d, domain='EX')
+print(gb)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time} seconds")
+for eq in gb:
+    print(simplify(eq))
+

@@ -1,0 +1,23 @@
+from sympy import symbols
+from basics import Point, Construction
+from utils import midpoint
+import time
+# midpoint of a segment
+# initial points
+start_time = time.time()
+a1, a2, b1, b2 = symbols('a1, a2, b1, b2')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+# construction
+cons = Construction(p1, p2)
+p3 = midpoint(p1, p2, cons)
+print("construction completed")
+print("All points:")
+for point in cons.points:
+    print(point.to_str())
+print("Construction system:")
+print(cons.get_system())
+print(cons.all_vars)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")
