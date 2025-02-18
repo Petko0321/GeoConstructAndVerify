@@ -3,56 +3,13 @@ from sympy.polys.orderings import monomial_key
 import string
 from typing import Optional
 
-from sympy.integrals.integrals import _
-
-
-class Solution:
-    def __init__(self, construction, output_vars, input_vars=[]):
-        self.input_vars = input_vars
-        self.output_vars = output_vars
-        self.construction = construction
-        system_eqs = construction.get_system()
-        self.system = []
-        for eq in system_eqs:
-            if eq == True:
-                continue
-            if not isinstance(eq, Eq):
-                print(f"Here: {eq}")
-            expr = eq.lhs - eq.rhs
-            numerator, denominator = expr.as_numer_denom()
-            expr = simplify(Mul(numerator, denominator, evaluate=False))
-            self.system.append(expr)
-            self.all_vars = []
-            for v in construction.all_vars:
-                if isinstance(v, Symbol):
-                    self.all_vars.append(v)
-        self.synthetic_vars = [
-            var for var in self.all_vars if var not in input_vars and var not in output_vars]
-        # ringg = ring(self.all_vars, RR)[0]
-        order = monomial_key(self.custom_order)
-        self.reduced_groebner_basis = groebner(
-            self.system, self.all_vars, method="buchberger", order="grlex")
-
-    def custom_order(self, monomial):
-        # Define the custom monomial order
-        synthetic_part = monomial[:len(self.synthetic_vars)]
-        output_part = monomial[len(self.synthetic_vars):len(
-            self.synthetic_vars) + len(self.output_vars)]
-        input_part = monomial[len(self.synthetic_vars) +
-                              len(self.output_vars):]
-
-        # Priority order: Synthetic > Output > Input
-        return (tuple(-exp for exp in synthetic_part),
-                tuple(-exp for exp in output_part),
-                tuple(-exp for exp in input_part))
-
-
 class Construction:
     def __init__(self, *geometrical_objects, input_equations=None):
         input_vars = []
         input_points = []
         self.system = []
         self.distances = []
+        self.all_vars = []
         for objec in geometrical_objects:
             if isinstance(objec, Line):
                 input_points.append(objec.point1)
@@ -71,25 +28,23 @@ class Construction:
             point.construction = self
             input_vars.append(point.x)
             input_vars.append(point.y)
-
-        self.input_vars = input_vars
-        self.all_vars = self.input_vars
         self.points = input_points
         for i in range(len(input_points)):
             for j in range(i + 1, len(input_points)):
                 point1 = input_points[i]
                 point2 = input_points[j]
-                self.add_equation(Eq(((point1.x-point2.x)**2+(point1.y-point2.y)**2)*self.get_new_d(point1, point2), 1))
-        self.input_eqs = []
+                self.add_equation(
+                    Eq(((point1.x-point2.x)**2+(point1.y-point2.y)**2)*self.get_new_d(point1, point2), 1))
         self.input_eqs = [eq for eq in self.system]
         self.input_vars = input_vars
-        self.all_vars = self.input_vars
+        self.all_vars.extend(input_vars)
         self.points = input_points
         if input_equations != None:
             for eq in input_equations:
                 self.add_equation(eq)
         self.new_variable_counter = 0
         self.optimization_equations = []
+        self.arbitrary_points = []
 
     def get_system(self):
         return self.system
@@ -132,14 +87,16 @@ class Construction:
         else:
             raise ValueError("Invalid geometrical object type!")
             result = None
-        result = self.prevent_duplicate_points(result, line_or_circle1, line_or_circle2)
-        
+        result = self.prevent_duplicate_points(
+            result, line_or_circle1, line_or_circle2)
+
         duplicates = result.pop(-1)
         if len(duplicates) != 0:
             for duplicate in duplicates:
-                old, new = duplicate  
+                old, new = duplicate
                 for eq in self.optimized_eqs:
-                    after_subs = simplify(eq.subs({old.x: new.x, old.y: new.y}))
+                    after_subs = simplify(
+                        eq.subs({old.x: new.x, old.y: new.y}))
                     if after_subs != 0:
                         self.optimization_equations.append(after_subs)
         else:
@@ -155,7 +112,8 @@ class Construction:
             p2 = result[2]
             if only_points:
                 result.remove(result[0])
-            print(f"--> coordinates ({p1.x},{p1.y}), ({p2.x},{p2.y}) of the two intersecting points")
+            print(
+                f"--> coordinates ({p1.x},{p1.y}), ({p2.x},{p2.y}) of the two intersecting points")
         else:
             if only_points:
                 result = result[1]
@@ -168,7 +126,8 @@ class Construction:
         y = p.y
         a1, b1, c1 = line1.a(), line1.b(), line1.c()
         a2, b2, c2 = line2.a(), line2.b(), line2.c()
-        self.optimized_eqs.extend([x*(a1*b2 - a2*b1) - (b1*c2 - b2*c1), y*(a1*b2 - a2*b1) - (a2*c1 - a1*c2)])
+        self.optimized_eqs.extend(
+            [x*(a1*b2 - a2*b1) - (b1*c2 - b2*c1), y*(a1*b2 - a2*b1) - (a2*c1 - a1*c2)])
         return [[line1.get_equation([x, y]), line2.get_equation([x, y])], p]
 
     def intersect_two_circles(self, circle1, circle2):
@@ -183,10 +142,12 @@ class Construction:
         r1_sqr = circle1.squared_radius
         r2_sqr = circle2.squared_radius
         d = self.get_new_d(p1, p2)
-        self.optimized_eqs.extend([(x1*(m1 - m2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) - y2*(n1 - n2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) + (m1 - m2)*(-m1**4 + 2*m1**3*m2 + 2*m1**2*n1*n2 - 2*m1**2*n2**2 + m1**2*r1_sqr - m1**2*r2_sqr - 2*m1*m2**3 - 2*m1*m2*n1**2 + 2*m1*m2*n2**2 - 2*m1*m2*r1_sqr + 2*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 2*m2**2*n1*n2 + m2**2*r1_sqr - m2**2*r2_sqr + n1**4 - 2*n1**3*n2 - n1**2*r1_sqr + n1**2*r2_sqr + 2*n1*n2**3 + 2*n1*n2*r1_sqr - 2*n1*n2*r2_sqr - n2**4 - n2**2*r1_sqr + n2**2*r2_sqr)/2), (-m1**2*n1 - m1**2*n2 + 2*m1*m2*n1 + 2*m1*m2*n2 - m2**2*n1 - m2**2*n2 - n1**3 + n1**2*n2 + n1*n2**2 + n1*r1_sqr - n1*r2_sqr - n2**3 - n2*r1_sqr + n2*r2_sqr + (y1 + y2)*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))/(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2), (-m1**2 + m2**2 - n1**2 + n2**2 + r1_sqr - r2_sqr + 2*x2*(m1 - m2) + 2*y2*(n1 - n2)), (m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 + 2*m2**2*n2**2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 2*n1**2*n2**2 - 2*n1**2*r1_sqr + 2*n1**2*r2_sqr + n2**4 + 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2 + 4*y2**2*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2) - 4*y2*(m1**2*n1 + m1**2*n2 - 2*m1*m2*n1 - 2*m1*m2*n2 + m2**2*n1 + m2**2*n2 + n1**3 - n1**2*n2 - n1*n2**2 - n1*r1_sqr + n1*r2_sqr + n2**3 + n2*r1_sqr - n2*r2_sqr))/(4*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))])
+        self.optimized_eqs.extend([(x1*(m1 - m2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) - y2*(n1 - n2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) + (m1 - m2)*(-m1**4 + 2*m1**3*m2 + 2*m1**2*n1*n2 - 2*m1**2*n2**2 + m1**2*r1_sqr - m1**2*r2_sqr - 2*m1*m2**3 - 2*m1*m2*n1**2 + 2*m1*m2*n2**2 - 2*m1*m2*r1_sqr + 2*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 2*m2**2*n1*n2 + m2**2*r1_sqr - m2**2*r2_sqr + n1**4 - 2*n1**3*n2 - n1**2*r1_sqr + n1**2*r2_sqr + 2*n1*n2**3 + 2*n1*n2*r1_sqr - 2*n1*n2*r2_sqr - n2**4 - n2**2*r1_sqr + n2**2*r2_sqr)/2), (-m1**2*n1 - m1**2*n2 + 2*m1*m2*n1 + 2*m1*m2*n2 - m2**2*n1 - m2**2*n2 - n1**3 + n1**2*n2 + n1*n2**2 + n1*r1_sqr - n1*r2_sqr - n2**3 -
+                                  n2*r1_sqr + n2*r2_sqr + (y1 + y2)*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2)), (-m1**2 + m2**2 - n1**2 + n2**2 + r1_sqr - r2_sqr + 2*x2*(m1 - m2) + 2*y2*(n1 - n2)), (m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 + 2*m2**2*n2**2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 2*n1**2*n2**2 - 2*n1**2*r1_sqr + 2*n1**2*r2_sqr + n2**4 + 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2 + 4*y2**2*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2) - 4*y2*(m1**2*n1 + m1**2*n2 - 2*m1*m2*n1 - 2*m1*m2*n2 + m2**2*n1 + m2**2*n2 + n1**3 - n1**2*n2 - n1*n2**2 - n1*r1_sqr + n1*r2_sqr + n2**3 + n2*r1_sqr - n2*r2_sqr))])
         # Variable*distance = 1:
-        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2)* d, 1)
-        self.optimized_eqs.append((d*(m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 - 4*m1**2*n1*n2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 + 8*m1*m2*n1*n2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 4*m2**2*n1*n2 + 2*m2**2*n2**2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 4*n1**3*n2 + 6*n1**2*n2**2 - 2*n1**2*r1_sqr - 2*n1**2*r2_sqr - 4*n1*n2**3 + 4*n1*n2*r1_sqr + 4*n1*n2*r2_sqr + n2**4 - 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2) + m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))
+        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2) * d, 1)
+        self.optimized_eqs.append((d*(m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 - 4*m1**2*n1*n2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 + 8*m1*m2*n1*n2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 4*m2**2*n1*n2 + 2*m2**2*n2 **
+                                  2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 4*n1**3*n2 + 6*n1**2*n2**2 - 2*n1**2*r1_sqr - 2*n1**2*r2_sqr - 4*n1*n2**3 + 4*n1*n2*r1_sqr + 4*n1*n2*r2_sqr + n2**4 - 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2) + m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))
         # Exact distance:
         # D_squared = (circle1.center.x - circle2.center.x)**2 + (circle1.center.y - circle2.center.y)**2
         # distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2), 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)
@@ -203,19 +164,22 @@ class Construction:
         a, b, c = line.a(), line.b(), line.c()
         r_squared = circle.squared_radius
         m, n = circle.center.x, circle.center.y
-        self.optimized_eqs.extend([(2*a**2*b*n + a**2*c - 2*a*b**2*m + a*x1*(a**2 + b**2) - b**2*c - b*y2*(a**2 + b**2))/(a**2 + b**2), (-2*a**2*n + 2*a*b*m + 2*b*c + (a**2 + b**2)*(y1 + y2))/(a**2 + b**2), (a*x2 + b*y2 + c), (a**2*m**2 + a**2*n**2 - a**2*r_squared + 2*a*c*m + c**2 + y2**2*(a**2 + b**2) + 2*y2*(-a**2*n + a*b*m + b*c))/(a**2 + b**2)])
+        self.optimized_eqs.extend([(2*a**2*b*n + a**2*c - 2*a*b**2*m + a*x1*(a**2 + b**2) - b**2*c - b*y2*(a**2 + b**2)), (-2*a**2*n + 2*a*b*m + 2*b*c + (
+            a**2 + b**2)*(y1 + y2)), (a*x2 + b*y2 + c), (a**2*m**2 + a**2*n**2 - a**2*r_squared + 2*a*c*m + c**2 + y2**2*(a**2 + b**2) + 2*y2*(-a**2*n + a*b*m + b*c))])
         # Variable*distance = 1:
         d = self.get_new_d(p1, p2)
-        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2)* d, 1)
-        self.optimized_eqs.append(d*(-4*a**2*m**2 + 4*a**2*r_squared - 8*a*b*m*n - 8*a*c*m - 4*b**2*n**2 + 4*b**2*r_squared - 8*b*c*n - 4*c**2) - a**2 - b**2)
+        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2) * d, 1)
+        self.optimized_eqs.append(d*(-4*a**2*m**2 + 4*a**2*r_squared - 8*a*b*m*n -
+                                  8*a*c*m - 4*b**2*n**2 + 4*b**2*r_squared - 8*b*c*n - 4*c**2) - a**2 - b**2)
         # Exact distance:
         # d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/((line.point1.x - line.point2.x)**2+(line.point1.y-line.point2.y)**2)
         # distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2), 4*(circle.squared_radius - d_squared))
-    
+
         if point_coordinator != None:
             c1 = point_coordinator.x
             d1 = point_coordinator.y
-            coordinator_equation = Eq((x2-c1)**2 + (y2-d1)**2 - ((x1-c1)**2+(y1-d1)**2), self.get_new_d()**2)
+            coordinator_equation = Eq(
+                (x2-c1)**2 + (y2-d1)**2 - ((x1-c1)**2+(y1-d1)**2), self.get_new_d()**2)
             return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation, coordinator_equation], p1, p2]
         return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
 
@@ -249,7 +213,8 @@ class Construction:
                 if point == p1 or point == p2:
                     continue
                 elif point.lie_on(object1) and point.lie_on(object2):
-                    equations = [eq.subs({duplicate_point.x: point.x, duplicate_point.y: point.y}) for eq in equations]
+                    equations = [eq.subs(
+                        {duplicate_point.x: point.x, duplicate_point.y: point.y}) for eq in equations]
                     self.all_vars.remove(duplicate_point.x)
                     self.all_vars.remove(duplicate_point.y)
                     self.new_variable_counter -= 2
@@ -306,11 +271,80 @@ class Construction:
         if equation != True:
             self.system.append(equation)
 
+class Solution:
+    def __init__(self, construction: Construction, output_vars, input_vars: list=[], optimized=False):
+        self.input_vars = input_vars
+        self.construction : Construction = construction
+        self.input_vars.extend(self.construction.input_vars)
+        self.output_vars = output_vars
+        self.all_vars = []
+        self.values = {}
+        if optimized:
+            system_eqs = construction.input_eqs + construction.optimization_equations
+        else:
+            system_eqs = construction.get_system()
+        self.system = []
+        for eq in system_eqs:
+            if eq == True:
+                continue
+            if not isinstance(eq, Eq):
+                expr = eq
+            else:
+                expr = eq.lhs - eq.rhs
+                numerator, denominator = expr.as_numer_denom()
+                expr = simplify(Mul(numerator, denominator, evaluate=False))
+            self.system.append(expr)
+            for var in construction.all_vars:
+                if isinstance(var, Symbol):
+                    self.all_vars.append(var)
+        self.synthetic_vars = [
+    var for arb_point in self.construction.arbitrary_points for var in arb_point.coordinates
+]
+        input_vars_set = set(input_vars)
+        output_vars_set = set(output_vars)
+        synthetic_vars_set = set(self.synthetic_vars)
+
+        seen = set()
+        self.auxiliary_vars = []
+        for var in self.all_vars:
+            if var not in input_vars and var not in output_vars and var not in self.synthetic_vars:
+                if var not in seen:
+                    self.auxiliary_vars.append(var)
+                    seen.add(var)
+        # ringg = ring(self.all_vars, RR)[0]
+        # order = monomial_key(self.custom_order)
+        # self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order="grlex")
+
+    def custom_order(self, monomial):
+        # Define the custom monomial order
+        synthetic_part = monomial[:len(self.synthetic_vars)]
+        output_part = monomial[len(self.synthetic_vars):len(
+            self.synthetic_vars) + len(self.output_vars)]
+        input_part = monomial[len(self.synthetic_vars) +
+                              len(self.output_vars):]
+
+        # Priority order: Synthetic > Output > Input
+        return (tuple(-exp for exp in synthetic_part),
+                tuple(-exp for exp in output_part),
+                tuple(-exp for exp in input_part))
+
+    def set_input_values(self, **values):
+        """Set values for symbolic variables."""
+        for var in self.input_vars:
+            if var.name in values:
+                self.values[var] = values[var.name]
+        self.system = [eq.subs(self.values) for eq in self.system]
+
+    def get_value(self, var):
+        """Get the assigned value of a variable, if available."""
+        return self.values.get(var, None)
+
 
 class Point:
     def __init__(self, x, y, construction=None):
         self.x = x
         self.y = y
+        self.coordinates = (x, y)
         self.construction = construction
 
     def x(self):
@@ -335,14 +369,16 @@ class AribitaryPoint(Point):
     def __init__(self, construction, geometrical_object=None, distance: Optional[float] = None, coordinates: Optional[list] = None):
         if distance is None:
             distance = 0
-        self.construction = construction
+        self.construction: Construction = construction
         if coordinates == None:
             self.x = construction.get_new_var()
             self.y = construction.get_new_var()
         else:
             self.x = coordinates[0]
             self.y = coordinates[1]
+        self.coordinates = (self.x, self.y)
         self.construction.points.append(self)
+        self.construction.arbitrary_points.append(self)
 
         if geometrical_object is not None:
             if distance == 0:

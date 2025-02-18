@@ -1,66 +1,123 @@
-
-import math
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
 from basics import AribitaryPoint, Point, Construction, Square
 
+
 def perpendicular_bisector(point1, point2, only_line=True):
-    # Returns  equations derived form the construction, the intersecting points which determine
-    # the perpendicular bisector and the perpendicular bisector as Line object
+    """Constructs the perpendicular bisector of the line segment between two points.
+
+    This method finds the perpendicular bisector of the segment defined by `point1`
+    and `point2`. The bisector will pass through the midpoint of the segment and
+    be perpendicular to the line connecting the two points.
+
+    Parameters:
+    - point1: The first endpoint of the line segment.
+    - point2: The second endpoint of the line segment.
+    - only_line (bool, optional): If True, returns only the perpendicular bisector as a Line object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The intersecting points that determine the perpendicular bisector.
+    - The perpendicular bisector as a Line object.
+    """
     if point1.construction == None or point1.construction != point2.construction:
         raise ValueError("The objects have to be in the same construction!")
-    construction : Construction = point1.construction
+    construction: Construction = point1.construction
     c1 = construction.create_circle(point1, point2)
     c2 = construction.create_circle(point2, point1)
-    equations, p1, p2 = construction.intersect(c1, c2)
+    equations, p1, p2 = construction.intersect(c1, c2, False)
     perpendicular_bisector = construction.create_line(p1, p2)
-    construction.optimization_equations.extend(p1.x)
-    
+    # construction.optimization_equations.extend(p1.x)
+
     if only_line:
         return perpendicular_bisector
     else:
         return [equations, p1, p2, perpendicular_bisector]
-    
+
     # If we wanted to return the equation of the perpendicular bisector, we'd used this:
     # intersecting_points = solve(equations,construction.vars)
     # l2 = Line(Point(intersecting_points[0][0], intersecting_points[0][1]), Point(intersecting_points[1][0], intersecting_points[1][1]))
     # return simplify(l2.get_equation([x, y]))
     # But it's too slow
-    
-def midpoint(point1, point2, construction):
-    # Returns the midpoint of two points
+
+
+def midpoint(point1, point2):
+    """Finds the midpoint of two given points.
+
+    Parameters:
+    - point1: The first point (tuple or list of coordinates).
+    - point2: The second point (tuple or list of coordinates).
+
+    Returns:
+    - The midpoint as a Point object.
+    """
+    if point1.construction == None or point1.construction != point2.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
     line1 = construction.create_line(point1, point2)
-    perpendicular_bisector1 = perpendicular_bisector(point1, point2, construction, True)
-    p = construction.intersect(line1, perpendicular_bisector1, True)
+    perpendicular_bisector1 = perpendicular_bisector(point1, point2)
+    p = construction.intersect(line1, perpendicular_bisector1)
     return p
-    
-def angle_bisector(point1, point2, point3, construction, only_line=True):
-    # point2 - the vertex of the angle
-    # Returns equations derived form the construction and the angle bisector as Line object
+
+
+def angle_bisector(point1, point2, point3, only_line=True):
+    """Constructs the angle bisector of an angle formed by three points.
+
+    This method finds the bisector of the angle formed at `point2` by the lines
+    passing through (`point1`, `point2`) and (`point2`, `point3`).
+
+    Parameters:
+    - point1: The first point defining one side of the angle.
+    - point2: The vertex of the angle.
+    - point3: The third point defining the other side of the angle.
+    - only_line (bool, optional): If True, returns only the angle bisector as a Line object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The angle bisector as a Line object.
+    """
+    if point1.construction == None or point1.construction != point2.construction or point1.construction != point3.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
     all_equations = []
     line1 = construction.create_line(point2, point3)
     cr1 = construction.create_circle(point2, point1)
-    equations, p, _ = construction.intersect(cr1, line1)
-    for eq in equations:
-        all_equations.append(eq)
-    equations, _, _, angle_bisector = perpendicular_bisector(point1, p, construction)
-    for eq in equations:
-        all_equations.append(eq)
+    equations, p, _ = construction.intersect(cr1, line1, False)
+    all_equations.extend(equations)
+    equations, _, _, angle_bisector = perpendicular_bisector(point1, p, False)
+    all_equations.extend(equations)
     if only_line:
         return angle_bisector
     else:
         return [equations, angle_bisector]
 
-def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bool=True):
-    # Returns equations derived form the construction, the intersecting points which determine
-    # the perpendicular line and/ or only the perpendicular line as Line object
-    # Two possible routes depending upon whether the point lies on the line
+
+def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bool = True):
+    """Constructs a line perpendicular to a given line through a specified point.
+
+    This method determines a perpendicular line based on whether the given point
+    lies on the provided line. Two different construction routes are used
+    depending on this condition.
+
+    Parameters:
+    - point: The point through which the perpendicular line will pass.
+    - line: The original line to which the new line will be perpendicular.
+    - point_is_on_line (bool, optional): Specifies whether the given point is on the line.
+      If None, this will be determined automatically.
+    - only_line (bool, optional): If True, returns only the perpendicular line as a Line object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The intersecting points that determine the perpendicular line.
+    - The perpendicular line as a Line object.
+    """
+
     all_equations = []
     if point_is_on_line == None:
         point_is_on_line = point.lie_on(line)
     if point.construction == None or point.construction != line.point1.construction:
         raise ValueError("The objects have to be in the same construction!")
-    construction : Construction = point.construction
-    
+    construction: Construction = point.construction
+
     if point_is_on_line:
         another_point_on_line = line.point1
         if construction.coincide_points(point, line.point1):
@@ -68,7 +125,8 @@ def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bo
         c1 = construction.create_circle(point, another_point_on_line)
         equations, p1, p2 = construction.intersect(c1, line, False)
         all_equations.extend(equations)
-        equations, p1, p2, perpendicular_line = perpendicular_bisector(p1, p2, construction, False)
+        equations, p1, p2, perpendicular_line = perpendicular_bisector(
+            p1, p2, False)
         all_equations.extend(equations)
 
     else:
@@ -83,19 +141,31 @@ def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bo
     else:
         return [all_equations, p1, p2, perpendicular_line]
 
-def parallel_line(point, line, construction, only_line=True):
-    # Construct a parallel line through point not lying on a given line
-    # Returns  equations derived form the construction, the intersecting points which determine
-    # the parallel line and the parallel line as Line object
+
+def parallel_line(point, line, only_line=True):
+    """Constructs a line parallel to a given line through a specified point.
+
+    This method creates a parallel line passing through a point that does not lie on the given line.
+
+    Parameters:
+    - point: The point through which the parallel line will pass.
+    - line: The original line to which the new line will be parallel.
+    - only_line (bool, optional): If True, returns only the parallel line as a Line object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The intersecting points that determine the parallel line.
+    - The parallel line as a Line object.
+    """
     all_equations = []
-    equations, _, _, perpendicular_line1 = perpendicular_line(point, line, False, construction)
-    for eq in equations:
-       all_equations.append(eq)
+    equations, _, _, perpendicular_line1 = perpendicular_line(
+        point, line, False, False)
+    all_equations.extend(equations)
     # point_in_on_line is given false
-    equations, p1, p2, parallel_line = perpendicular_line(point, perpendicular_line1, True, construction)
-    for eq in equations:
-       all_equations.append(eq)
-    # point_is_on_line is obviously true 
+    equations, p1, p2, parallel_line = perpendicular_line(
+        point, perpendicular_line1, True, False)
+    all_equations.extend(equations)
+    # point_is_on_line is obviously true
     if only_line:
         return parallel_line
     else:
@@ -113,38 +183,66 @@ class Vector:
     def __init__(self, starting_point, ending_point):
         self.starting_point = starting_point
         self.ending_point = ending_point
+
     def length(self):
         return ((self.starting_point.x - self.ending_point.x)**2 + (self.starting_point.y-self.ending_point.y)**2)**(1/2)
-    
-def translate_vector(vector, point, construction, only_vector=True):
-    # Translate a vector method (not working if all points on the same line)
-    # Returns  equations derived form the construction, the fourth vertex of 
-    # the parallelogram and the wanted vector
-   p1 = vector.starting_point
-   p2 = vector.ending_point
-   p3 = point
-   line1 = construction.create_line(p1, p2)
-   line2 = construction.create_line(p1, p3)
-   all_equations = []
-   equations, _, _, line3 = parallel_line(p3, line1, construction)
-   for eq in equations:
-       all_equations.append(eq)
-   equations, _, _, line4 = parallel_line(p2, line2, construction)
-   for eq in equations:
-       all_equations.append(eq)
-   equations, p = construction.intersect(line3, line4)
-   for eq in equations:
-            all_equations.append(eq)
-   wanted_vector = Vector(p3, p)
-   if only_vector:
-       return wanted_vector
-   else:
+
+
+def translate_vector(vector, point, only_vector=True):
+    """Translates a vector using a given point.
+
+    This method constructs a parallelogram to determine the translated vector.
+    Note: It does not work if all points are collinear.
+
+    Parameters:
+    - vector: The vector to be translated.
+    - point: A reference point for the translation.
+    - only_vector (bool, optional): If True, returns only the translated vector.
+
+    Returns:
+    - Equations derived from the construction.
+    - The fourth vertex of the parallelogram.
+    - (or only) the translated vector.
+    """
+
+    if point.construction == None or point.construction != vector.starting_point.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point.construction
+    p1 = vector.starting_point
+    p2 = vector.ending_point
+    p3 = point
+    line1 = construction.create_line(p1, p2)
+    line2 = construction.create_line(p1, p3)
+    all_equations = []
+    equations, _, _, line3 = parallel_line(p3, line1, False)
+    all_equations.extend(equations)
+    equations, _, _, line4 = parallel_line(p2, line2, False)
+    all_equations.extend(equations)
+    equations, p = construction.intersect(line3, line4, False)
+    all_equations.extend(equations)
+    wanted_vector = Vector(p3, p)
+    if only_vector:
+        return wanted_vector
+    else:
         return [all_equations, p, wanted_vector]
 
-def translate(vector, point, construction, only_vector=True):
-        # Translate a vector method (enhanced)
-        # Returns  equations derived form the construction, the fourth vertex of 
-        # the parallelogram and the wanted vector
+
+def translate(vector, point, only_vector=True):
+    """Translate a vector method (enhanced).
+    Returns:
+
+    Parameters:
+    - vector: The vector to be translated.
+    - point: A reference point for the translation.
+
+    Returns:
+    - Equations derived from the construction
+    - The fourth vertex of the parallelogram
+    - (or only) the translated vector
+    """
+    if point.construction == None or point.construction != vector.starting_point.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point.construction
     p1 = vector.starting_point
     p2 = vector.ending_point
     p3 = point
@@ -152,69 +250,133 @@ def translate(vector, point, construction, only_vector=True):
     if p3.lie_on(line1):
         print("The point lies on the line")
         all_equations = []
-        equations, _, v1 = translate_vector(vector, construction.get_arbitrary_point(line1, False), construction)
-        for eq in equations:
-            all_equations.append(eq)
-        equations, p, wanted_vector = translate_vector(v1, point, construction)
-        for eq in equations:
-            all_equations.append(eq)
+        equations, _, v1 = translate_vector(
+            vector, construction.get_arbitrary_point(line1, 1), False)
+        all_equations.extend(equations)
+        equations, p, wanted_vector = translate_vector(v1, point, False)
+        all_equations.extend(equations)
         result = [all_equations, p, wanted_vector]
     else:
         print("The point does not lie on the line")
-        result = translate_vector(vector, point, construction)
-    #print(f"The wanted vectror is from ({wanted_vector.starting_point.x}, {wanted_vector.starting_point.y}) to ({wanted_vector.ending_point.x}, {wanted_vector.ending_point.y})")
+        result = translate_vector(vector, point, False)
+    # print(f"The wanted vectror is from ({wanted_vector.starting_point.x}, {wanted_vector.starting_point.y}) to ({wanted_vector.ending_point.x}, {wanted_vector.ending_point.y})")
     if only_vector:
         return result[2]
     return result
 
-def compass(point1, point2, point3, construction, only_circle=True):
-    # Construct a circle with center at point3 and radius the distance between point1 and point3
-    # Returns  equations derived form the construction and the circle as Circle object
-    equations, p, _ = translate(Vector(point1, point2), point3, construction)
+
+def compass(point1, point2, point3, only_circle=True):
+    """Constructs a circle centered at a given point with a specified radius.
+
+    The circle is centered at `point3` with a radius equal to the distance
+    between `point2` and `point3`.
+
+    Parameters:
+    - point1: A reference point used to determine the radius.
+    - point2: A reference point used to determine the radius.
+    - point3: The center of the constructed circle.
+    - only_circle (bool, optional): If True, returns only the Circle object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The circle as a Circle object.
+    """
+    if point1.construction == None or point1.construction != point2.construction or point1.construction != point3.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
+    equations, p, _ = translate(Vector(point1, point2), point3)
     circle = construction.create_circle(point3, p)
     if only_circle:
         return circle
     return [equations, circle]
-    
 
-def circle_through_3_points(point1, point2, point3, construction, only_circle=True):
-    # Construct a circle through 3 points
-    # Returns  equations derived form the construction, the center of the circle and the circle itself
+
+def circle_through_3_points(point1, point2, point3, only_circle=True):
+    """Constructs a circle passing through three given points.
+
+    This method determines the unique circle that passes through the points
+    `point1`, `point2`, and `point3`. The center of the circle and its radius
+    are derived based on these points.
+
+    Parameters:
+    - point1: The first point on the circle.
+    - point2: The second point on the circle.
+    - point3: The third point on the circle.
+    - only_circle (bool, optional): If True, returns only the Circle object.
+
+    Returns:
+    - Equations derived from the construction.
+    - The center of the circle.
+    - The circle as a Circle object.
+    """
+    if point1.construction == None or point1.construction != point2.construction or point1.construction != point3.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
     all_equations = []
-    equations, _, _, perpendicular_bisector1 = perpendicular_bisector(point1, point2, construction)
-    for eq in equations:
-        all_equations.append(eq)
-    equations, _, _, perpendicular_bisector2 = perpendicular_bisector(point2, point3, construction)
-    for eq in equations:
-        all_equations.append(eq)
-    equations, center = construction.intersect(perpendicular_bisector1, perpendicular_bisector2)
-    for eq in equations:
-        all_equations.append(eq)
+    equations, _, _, perpendicular_bisector1 = perpendicular_bisector(
+        point1, point2, construction)
+    all_equations.extend(equations)
+    equations, _, _, perpendicular_bisector2 = perpendicular_bisector(
+        point2, point3, construction)
+    all_equations.extend(equations)
+    equations, center = construction.intersect(
+        perpendicular_bisector1, perpendicular_bisector2)
+    all_equations.extend(equations)
     circle = construction.create_circle(center, point1)
-    construction.add_equation(circle.get_equation([point2.x, point2.y]))
-    construction.add_equation(circle.get_equation([point3.x, point3.y]))
+    # construction.add_equation(circle.get_equation([point2.x, point2.y]))
+    # construction.add_equation(circle.get_equation([point3.x, point3.y]))
     if only_circle:
         return circle
     else:
         return [all_equations, center, circle]
-    
-def circle_by_diameter(point1, point2, construction):
-    # Construct a circle by given diameter introduced through two endpoints
-    # Returns the cirlce
+
+
+def circle_by_diameter(point1, point2):
+    """Constructs a circle given two points as the diameter endpoints.
+
+    This method determines the circle whose diameter is defined by the points
+    `point1` and `point2`. The center of the circle is the midpoint of the two
+    points, and the radius is half the distance between them.
+
+    Parameters:
+    - point1: The first endpoint of the diameter.
+    - point2: The second endpoint of the diameter.
+
+    Returns:
+    - The circle defined by the two points as the diameter.
+    """
+    if point1.construction == None or point1.construction != point2.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
     center = midpoint(point1, point2, construction)
     circle = construction.create_circle(center, point1)
     return circle
 
-def construct_square(point1, point2, construction):
-    # Square with side equal to the segment with endpoints point1 and point2
-    # Returns the square as Square object
+
+def construct_square(point1, point2):
+    """Constructs a square with a side length equal to the distance between two given points.
+
+    This method creates a square where the side length is determined by the distance
+    between `point1` and `point2`. The square is oriented with one side aligned with
+    the line segment defined by the two points.
+
+    Parameters:
+    - point1: The first point defining one end of the square's side.
+    - point2: The second point defining the other end of the square's side.
+
+    Returns:
+    - The square as a Square object.
+    """
+    if point1.construction == None or point1.construction != point2.construction:
+        raise ValueError("The objects have to be in the same construction!")
+    construction: Construction = point1.construction
     line1 = construction.create_line(point1, point2)
     cr1 = construction.create_circle(point2, point1)
-    perpendicular_line1 = perpendicular_line(point2, line1, True, construction, True)
+    perpendicular_line1 = perpendicular_line(
+        point2, line1, True, construction, True)
     point3, _ = construction.intersect(cr1, perpendicular_line1, True)
     cr2 = construction.create_circle(point1, point2)
     cr3 = construction.create_circle(point3, point2)
     point4, _ = construction.intersect(cr2, cr3, True)
     square = Square(point1, point2, point3, point4)
     return Square
-

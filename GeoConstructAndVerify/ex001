@@ -27,40 +27,41 @@ print(optimized)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
-# values = {a1: 1, b1: 1, a2: 3, b2: 2, a3: 4, b3: 5}
+values = {a1: 1, b1: 1, a2: 3, b2: 2, a3: 4, b3: 5}
 x1, y1, x2, y2, d1, d2, d3, d4 = symbols('x1, y1, x2, y2, d1, d2, d3, d4')
-# system = [(eq.lhs - eq.rhs).subs(values) for eq in cons.get_system()]
-# print(system)
-# optimized = [eq.subs(values) for eq in optimized]
-# print(optimized)
-# start_time = time.time()
-# solution = solve(system, x1, y1, x2, y2, d1, d2, d3, d4)
-# print(solution)
-# end_time = time.time()
-# elapsed_time = end_time - start_time
-# print(f"Elapsed time: {elapsed_time} seconds")
-# start_time = time.time()
-# solution = solve(optimized, x1, y1, x2, y2, d4)
-# print(solution)
-# end_time = time.time()
-# elapsed_time = end_time - start_time
+system = [(eq.lhs - eq.rhs).subs(values) for eq in cons.get_system()]
+print(system)
+optimized = [eq.subs(values) for eq in optimized]
+print(optimized)
+start_time = time.time()
+solution = solve(system, x1, y1, x2, y2, d1, d2, d3, d4)
+print(solution)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time} seconds")
+start_time = time.time()
+solution = solve(optimized, x1, y1, x2, y2, d4)
+print(solution)
+end_time = time.time()
+elapsed_time = end_time - start_time
 # print(f"Elapsed time: {elapsed_time} seconds")
 start_time = time.time()
 system = cons.get_system()
 print(system)
-gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
-print(gb)
+gb1 = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
+print(gb1)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time} seconds")
 
 start_time = time.time()
-system = cons.input_eqs + optimized
+system = cons.input_eqs + cons.optimization_equations
 print(system)
-gb = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
-print(gb)
+gb2 = groebner(system, x1, y1, x2, y2, d4, d1, d2, d3, domain='EX', order='grevlex')
+print(gb2)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time} seconds")
+print(gb1==gb2)
 
 
