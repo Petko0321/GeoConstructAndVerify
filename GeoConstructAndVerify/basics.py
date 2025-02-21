@@ -1,7 +1,8 @@
-from sympy import solve, symbols, Symbol, Eq, init_printing, simplify, ring, RR, groebner, fraction, Mul
+from sympy import solve, symbols, Symbol, Eq, init_printing, simplify, ring, RR, groebner, fraction, Mul, Expr
 from sympy.polys.orderings import monomial_key
 import string
 from typing import Optional
+
 
 class Construction:
     def __init__(self, *geometrical_objects, input_equations=None):
@@ -34,7 +35,7 @@ class Construction:
                 point1 = input_points[i]
                 point2 = input_points[j]
                 self.add_equation(
-                    Eq(((point1.x-point2.x)**2+(point1.y-point2.y)**2)*self.get_new_d(point1, point2), 1))
+                    simplify(((point1.x-point2.x)**2+(point1.y-point2.y)**2)*self.get_new_d(point1, point2) - 1))
         self.input_eqs = [eq for eq in self.system]
         self.input_vars = input_vars
         self.all_vars.extend(input_vars)
@@ -145,12 +146,11 @@ class Construction:
         self.optimized_eqs.extend([(x1*(m1 - m2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) - y2*(n1 - n2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) + (m1 - m2)*(-m1**4 + 2*m1**3*m2 + 2*m1**2*n1*n2 - 2*m1**2*n2**2 + m1**2*r1_sqr - m1**2*r2_sqr - 2*m1*m2**3 - 2*m1*m2*n1**2 + 2*m1*m2*n2**2 - 2*m1*m2*r1_sqr + 2*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 2*m2**2*n1*n2 + m2**2*r1_sqr - m2**2*r2_sqr + n1**4 - 2*n1**3*n2 - n1**2*r1_sqr + n1**2*r2_sqr + 2*n1*n2**3 + 2*n1*n2*r1_sqr - 2*n1*n2*r2_sqr - n2**4 - n2**2*r1_sqr + n2**2*r2_sqr)/2), (-m1**2*n1 - m1**2*n2 + 2*m1*m2*n1 + 2*m1*m2*n2 - m2**2*n1 - m2**2*n2 - n1**3 + n1**2*n2 + n1*n2**2 + n1*r1_sqr - n1*r2_sqr - n2**3 -
                                   n2*r1_sqr + n2*r2_sqr + (y1 + y2)*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2)), (-m1**2 + m2**2 - n1**2 + n2**2 + r1_sqr - r2_sqr + 2*x2*(m1 - m2) + 2*y2*(n1 - n2)), (m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 + 2*m2**2*n2**2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 2*n1**2*n2**2 - 2*n1**2*r1_sqr + 2*n1**2*r2_sqr + n2**4 + 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2 + 4*y2**2*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2) - 4*y2*(m1**2*n1 + m1**2*n2 - 2*m1*m2*n1 - 2*m1*m2*n2 + m2**2*n1 + m2**2*n2 + n1**3 - n1**2*n2 - n1*n2**2 - n1*r1_sqr + n1*r2_sqr + n2**3 + n2*r1_sqr - n2*r2_sqr))])
         # Variable*distance = 1:
-        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2) * d, 1)
-        self.optimized_eqs.append((d*(m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 - 4*m1**2*n1*n2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 + 8*m1*m2*n1*n2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 4*m2**2*n1*n2 + 2*m2**2*n2 **
-                                  2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 4*n1**3*n2 + 6*n1**2*n2**2 - 2*n1**2*r1_sqr - 2*n1**2*r2_sqr - 4*n1*n2**3 + 4*n1*n2*r1_sqr + 4*n1*n2*r2_sqr + n2**4 - 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2) + m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))
+        distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
+        self.optimized_eqs.append((d*(m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 - 4*m1**2*n1*n2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 + 8*m1*m2*n1*n2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 4*m2**2*n1*n2 + 2*m2**2*n2 **2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 4*n1**3*n2 + 6*n1**2*n2**2 - 2*n1**2*r1_sqr - 2*n1**2*r2_sqr - 4*n1*n2**3 + 4*n1*n2*r1_sqr + 4*n1*n2*r2_sqr + n2**4 - 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2) + m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))
         # Exact distance:
         # D_squared = (circle1.center.x - circle2.center.x)**2 + (circle1.center.y - circle2.center.y)**2
-        # distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2), 4*circle1.squared_radius + ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)
+        # distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) - 4*circle1.squared_radius - ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)
         return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), distance_equation], p1, p2]
 
     def intersect_line_circle(self, line, circle, point_coordinator=None):
@@ -168,18 +168,18 @@ class Construction:
             a**2 + b**2)*(y1 + y2)), (a*x2 + b*y2 + c), (a**2*m**2 + a**2*n**2 - a**2*r_squared + 2*a*c*m + c**2 + y2**2*(a**2 + b**2) + 2*y2*(-a**2*n + a*b*m + b*c))])
         # Variable*distance = 1:
         d = self.get_new_d(p1, p2)
-        distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2) * d, 1)
+        distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
         self.optimized_eqs.append(d*(-4*a**2*m**2 + 4*a**2*r_squared - 8*a*b*m*n -
                                   8*a*c*m - 4*b**2*n**2 + 4*b**2*r_squared - 8*b*c*n - 4*c**2) - a**2 - b**2)
         # Exact distance:
         # d_squared  = (((line.point2.y - line.point1.y)*circle.center.x - (line.point2.x-line.point1.x)*circle.center.y + line.point2.x*line.point1.y - line.point1.x*line.point2.y)**2)/((line.point1.x - line.point2.x)**2+(line.point1.y-line.point2.y)**2)
-        # distance_equation = Eq(((x1-x2)**2 + (y1-y2)**2), 4*(circle.squared_radius - d_squared))
+        # distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2)- 4*(circle.squared_radius - d_squared))
 
         if point_coordinator != None:
             c1 = point_coordinator.x
             d1 = point_coordinator.y
-            coordinator_equation = Eq(
-                (x2-c1)**2 + (y2-d1)**2 - ((x1-c1)**2+(y1-d1)**2), self.get_new_d()**2)
+            coordinator_equation = simplify(
+                (x2-c1)**2 + (y2-d1)**2 - ((x1-c1)**2+(y1-d1)**2) - self.get_new_d()**2)
             return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation, coordinator_equation], p1, p2]
         return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
 
@@ -190,11 +190,21 @@ class Construction:
         else:
             return False
 
-    def not_on_same_line(self, p1, p2, p3):
-        d1 = self.get_d(p1, p2)
-        d2 = self.get_d(p1, p3)
-        d3 = self.get_d(p2, p3)
-        self.add_equation(Eq((d2*d3-d1*d2-d1*d3)*self.get_new_d(), 1))
+    def not_collinear(self, p1, p2, p3):
+        # d1 = self.get_d(p1, p2)
+        # d2 = self.get_d(p1, p3)
+        # d3 = self.get_d(p2, p3)
+        # self.add_equation(simplify((d2*d3-d1*d2-d1*d3)*self.get_new_d()- 1))
+        a1, b1 = p1.x, p1.y
+        a2, b2 = p2.x, p2.y
+        a3, b3 = p3.x, p3.y
+        # Ensures that the three points are not congruent
+        det = a1*b1 + a2*b3 + a3*b1 - a3*b2 - a1*b3 - a2*b1
+        self.add_equation(det*self.get_new_d()-1)
+
+    def not_coinciding(self, p1, p2):
+        d = self.get_new_d(p1, p2)
+        self.add_equation(d*((p1.x-p2.x)**2+(p1.y-p2.y)**2)-1)
 
     def get_d(self, point1, point2):
         for d in self.distances:
@@ -271,10 +281,11 @@ class Construction:
         if equation != True:
             self.system.append(equation)
 
+
 class Solution:
-    def __init__(self, construction: Construction, output_vars, input_vars: list=[], optimized=False):
+    def __init__(self, construction: Construction, output_vars, input_vars: list = [], optimized=False):
         self.input_vars = input_vars
-        self.construction : Construction = construction
+        self.construction: Construction = construction
         self.input_vars.extend(self.construction.input_vars)
         self.output_vars = output_vars
         self.all_vars = []
@@ -285,21 +296,21 @@ class Solution:
             system_eqs = construction.get_system()
         self.system = []
         for eq in system_eqs:
-            if eq == True:
-                continue
-            if not isinstance(eq, Eq):
+            if isinstance(eq, Expr):
                 expr = eq
-            else:
+            elif isinstance(eq, Eq) and eq != True:
                 expr = eq.lhs - eq.rhs
                 numerator, denominator = expr.as_numer_denom()
                 expr = simplify(Mul(numerator, denominator, evaluate=False))
+            else:
+                raise ValueError("Unsupprorted equation type!")
             self.system.append(expr)
             for var in construction.all_vars:
                 if isinstance(var, Symbol):
                     self.all_vars.append(var)
         self.synthetic_vars = [
-    var for arb_point in self.construction.arbitrary_points for var in arb_point.coordinates
-]
+            var for arb_point in self.construction.arbitrary_points for var in arb_point.coordinates
+        ]
         input_vars_set = set(input_vars)
         output_vars_set = set(output_vars)
         synthetic_vars_set = set(self.synthetic_vars)
@@ -330,7 +341,7 @@ class Solution:
 
     def set_input_values(self, **values):
         """Set values for symbolic variables."""
-        for var in self.input_vars:
+        for var in (self.input_vars + self.synthetic_vars):
             if var.name in values:
                 self.values[var] = values[var.name]
         self.system = [eq.subs(self.values) for eq in self.system]
@@ -383,17 +394,17 @@ class AribitaryPoint(Point):
         if geometrical_object is not None:
             if distance == 0:
                 construction.add_equation(
-                    Eq(geometrical_object.get_equation([self.x, self.y]).lhs, 0))
+                    simplify(geometrical_object.get_equation([self.x, self.y])))
             else:
                 if isinstance(geometrical_object, Line):
                     construction.add_equation(
-                        Eq(geometrical_object.get_equation([self.x, self.y]).lhs ** 2,
-                           (geometrical_object.a() ** 2 + geometrical_object.b() ** 2) * distance ** 2)
+                        simplify(geometrical_object.get_equation([self.x, self.y])**2 -
+                                 (geometrical_object.a() ** 2 + geometrical_object.b() ** 2) * distance ** 2)
                     )
                 elif isinstance(geometrical_object, Circle):
                     construction.add_equation(
-                        Eq(geometrical_object.get_equation([self.x, self.y]).lhs ** 2,
-                           geometrical_object.get_squared_radius() + 2 * geometrical_object.get_squared_radius() ** 0.5 * distance + distance ** 2)
+                        simplify(geometrical_object.get_equation([self.x, self.y]) ** 2 -
+                                 geometrical_object.get_squared_radius() - 2 * geometrical_object.get_squared_radius() ** 0.5 * distance - distance ** 2)
                     )
                 else:
                     raise TypeError("Unsupported geometrical object type")
@@ -415,9 +426,9 @@ class Line:
         B = x2 - x1
         C = x1 * y2 - x2 * y1
         if variables == None:
-            return Eq(A * Symbol('x') + B * Symbol('y') + C, 0)
+            return simplify(A * Symbol('x') + B * Symbol('y') + C)
         # Return the equation in the form Ax + By + C = 0
-        return Eq(A * variables[0] + B * variables[1] + C, 0)
+        return simplify(A * variables[0] + B * variables[1] + C)
 
     def a(self):
         return self.point1.y - self.point2.y
@@ -445,12 +456,11 @@ class Circle:
         x1, y1 = self.point_on_circle.x, self.point_on_circle.y
 
         # Calculate the radius using the distance formula
-        r_squared = (x1 - h)**2 + (y1 - k)**2
         if variables == None:
-            return Eq((Symbol('x') - h)**2 + (Symbol('y') - k)**2, r_squared)
+            return simplify((Symbol('x') - h)**2 + (Symbol('y') - k)**2 - self.squared_radius)
 
         # Return the equation of the circle in the form (x-h)^2 + (y-k)^2 = r^2
-        return Eq((variables[0] - h)**2 + (variables[1] - k)**2, r_squared)
+        return simplify((variables[0] - h)**2 + (variables[1] - k)**2 - self.squared_radius)
 
     def get_squared_radius(self):
         h, k = self.center.x, self.center.y

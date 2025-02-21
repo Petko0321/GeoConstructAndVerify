@@ -1,6 +1,6 @@
 from basics import Point, Construction, Solution
 from utils import perpendicular_bisector
-from sympy import symbols, groebner
+from sympy import symbols, groebner, solve
 import time
 # Construction of angle bisector
 # given points:
@@ -90,13 +90,15 @@ p3 = Point(a3, b3)
 
 # construction 3
 cons3 = Construction(p1, p2, p3)
-#cons2.not_on_same_line(p1, p2, p3)
+cons3.not_collinear(p1, p2, p3)
 line31 = cons3.create_line(p1, p2)
 line32 = cons3.create_line(p1, p3)
 line33 = cons3.create_line(p2, p3)
-circle3 = cons3.create_circle(p1, cons3.get_arbitrary_point(line31))
+arib1 = cons3.get_arbitrary_point(line31)
+cons3.not_coinciding(p1, arib1)
+circle3 = cons3.create_circle(p1, arib1)
 _, p4 = cons3.intersect(line32, circle3, True, p3)
-ang_bis3 = perpendicular_bisector(p2, p4)
+ang_bis3 = perpendicular_bisector(arib1, p4)
 # p5 = cons2.get_arbitrary_point(ang_bis2)
 p6 = cons3.intersect(ang_bis3, line33, True)
 print("construction 3 completed")
@@ -109,21 +111,26 @@ system3 = cons3.get_system()
 print(system3)
 print(cons3.all_vars)
 x6, y6 = symbols('x6 y6')
-sol3 = Solution(cons3, [x6, y6], optimized=True)
-print("Solution 2:")
+sol3 = Solution(cons3, [x6, y6], optimized=False)
+print("Solution 3:")
 print(sol3.system)
 print(sol3.input_vars)
 print(sol3.output_vars)
 print(sol3.auxiliary_vars)
 print(sol3.synthetic_vars)
+A1A2 =(a1-a2)**2+(b1-b2)**2
+A1A3 = (a1-a3)**2+(b1-b3)**2
+sol3.system.append(x6*(A1A2 + A1A3)-a2*A1A3 - a3*(A1A2))
+sol3.system.append(y6*(A1A2 + A1A3)-b2*A1A3 - b3*(A1A2))
 sol3.set_input_values(a1=1, b1=1, a2=4, b2=0, a3=2, b3=4)
 system3 = sol3.system
 print(system3)
 start_time = time.time()
-generators = sol3.synthetic_vars + sol3.auxiliary_vars + sol3.output_vars
+generators = sol3.output_vars + sol3.synthetic_vars  + sol3.auxiliary_vars
 print(generators)
-gb3 = groebner(system3, generators, domain="EX", order="grevlex")
+gb3 = groebner(system3, generators, domain="EX", order="grlex")
 print(gb3)
+# print(solve(system3, sol3.auxiliary_vars + sol3.output_vars))
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
