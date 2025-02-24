@@ -1,5 +1,5 @@
 from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
-from basics import AribitaryPoint, Point, Construction, Square
+from basics import AribitaryPoint, Point, Construction, Square, coincide_points
 
 
 def perpendicular_bisector(point1, point2, only_line=True):
@@ -120,7 +120,7 @@ def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bo
 
     if point_is_on_line:
         another_point_on_line = line.point1
-        if construction.coincide_points(point, line.point1):
+        if coincide_points(point, line.point1):
             another_point_on_line = line.point2
         c1 = construction.create_circle(point, another_point_on_line)
         equations, p1, p2 = construction.intersect(c1, line, False)
@@ -284,7 +284,7 @@ def compass(point1, point2, point3, only_circle=True):
     if point1.construction == None or point1.construction != point2.construction or point1.construction != point3.construction:
         raise ValueError("The objects have to be in the same construction!")
     construction: Construction = point1.construction
-    equations, p, _ = translate(Vector(point1, point2), point3)
+    equations, p, _ = translate(Vector(point1, point2), point3, False)
     circle = construction.create_circle(point3, p)
     if only_circle:
         return circle
@@ -313,14 +313,11 @@ def circle_through_3_points(point1, point2, point3, only_circle=True):
         raise ValueError("The objects have to be in the same construction!")
     construction: Construction = point1.construction
     all_equations = []
-    equations, _, _, perpendicular_bisector1 = perpendicular_bisector(
-        point1, point2, construction)
+    equations, _, _, perpendicular_bisector1 = perpendicular_bisector(point1, point2, False)
     all_equations.extend(equations)
-    equations, _, _, perpendicular_bisector2 = perpendicular_bisector(
-        point2, point3, construction)
+    equations, _, _, perpendicular_bisector2 = perpendicular_bisector(point2, point3, False)
     all_equations.extend(equations)
-    equations, center = construction.intersect(
-        perpendicular_bisector1, perpendicular_bisector2)
+    equations, center = construction.intersect(perpendicular_bisector1, perpendicular_bisector2, False)
     all_equations.extend(equations)
     circle = construction.create_circle(center, point1)
     # construction.add_equation(circle.get_equation([point2.x, point2.y]))
@@ -348,7 +345,7 @@ def circle_by_diameter(point1, point2):
     if point1.construction == None or point1.construction != point2.construction:
         raise ValueError("The objects have to be in the same construction!")
     construction: Construction = point1.construction
-    center = midpoint(point1, point2, construction)
+    center = midpoint(point1, point2)
     circle = construction.create_circle(center, point1)
     return circle
 
@@ -372,11 +369,10 @@ def construct_square(point1, point2):
     construction: Construction = point1.construction
     line1 = construction.create_line(point1, point2)
     cr1 = construction.create_circle(point2, point1)
-    perpendicular_line1 = perpendicular_line(
-        point2, line1, True, construction, True)
-    point3, _ = construction.intersect(cr1, perpendicular_line1, True)
+    perpendicular_line1 = perpendicular_line(point2, line1, True)
+    point3, _ = construction.intersect(cr1, perpendicular_line1)
     cr2 = construction.create_circle(point1, point2)
     cr3 = construction.create_circle(point3, point2)
-    point4, _ = construction.intersect(cr2, cr3, True)
+    point4, _ = construction.intersect(cr2, cr3)
     square = Square(point1, point2, point3, point4)
     return Square

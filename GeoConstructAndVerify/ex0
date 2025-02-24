@@ -10,13 +10,17 @@ p1 = Point(a1, b1)
 p2 = Point(a2, b2)
 # construction
 cons = Construction(p1, p2)
-p3 = midpoint(p1, p2, cons)
+p3 = midpoint(p1, p2)
 print("construction completed")
 print("All points:")
 for point in cons.points:
     print(point.to_str())
+print("All objects:")
+for obj in cons.objects:
+    print(obj.to_str())
 print("Construction system:")
-print(cons.get_system())
+print(cons.system)
+print(cons.solution.system)
 print(cons.all_vars)
 end_time = time.time()
 elapsed_time = end_time - start_time
