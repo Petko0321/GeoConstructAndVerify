@@ -107,21 +107,22 @@ print("All points:")
 for point in cons3.points:
     print(point.to_str())
 print("Construction system:")
-system3 = cons3.get_system()
+system3 = cons3.system
 print(system3)
 print(cons3.all_vars)
 x6, y6 = symbols('x6 y6')
-sol3 = Solution(cons3, [x6, y6], optimized=False)
+# sol3 = Solution(cons3, [x6, y6], optimized=False)
+sol3 = cons3.solution
 print("Solution 3:")
 print(sol3.system)
 print(sol3.input_vars)
 print(sol3.output_vars)
 print(sol3.auxiliary_vars)
 print(sol3.synthetic_vars)
-A1A2 =(a1-a2)**2+(b1-b2)**2
-A1A3 = (a1-a3)**2+(b1-b3)**2
-sol3.system.append(x6*(A1A2 + A1A3)-a2*A1A3 - a3*(A1A2))
-sol3.system.append(y6*(A1A2 + A1A3)-b2*A1A3 - b3*(A1A2))
+# A1A2 =(a1-a2)**2+(b1-b2)**2
+# A1A3 = (a1-a3)**2+(b1-b3)**2
+# sol3.system.append(x6*(A1A2 + A1A3)-a2*A1A3 - a3*(A1A2))
+# sol3.system.append(y6*(A1A2 + A1A3)-b2*A1A3 - b3*(A1A2))
 sol3.set_input_values(a1=1, b1=1, a2=4, b2=0, a3=2, b3=4)
 system3 = sol3.system
 print(system3)
