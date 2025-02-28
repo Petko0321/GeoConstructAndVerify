@@ -45,7 +45,7 @@ print("construction completed")
 print("All points:")
 for point in cons.points:
     print(point.to_str())
-print(f"Output object: {cons.output_object.equation}")
+print(f"Output object: {cons.output_object[0].equation}")
 print("Construction system:")
 print(cons.system)
 print(cons.all_vars)

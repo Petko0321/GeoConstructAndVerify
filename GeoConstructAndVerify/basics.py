@@ -28,7 +28,7 @@ class Construction:
         for point in self.points:
             self.input_vars.extend([point.x, point.y])
 
-        self.last_d_index = 1
+        self.last_d_index = 0
         # Ensure the input points are distinct
         for i in range(len(self.points)):
             for j in range(i + 1, len(self.points)):
@@ -163,19 +163,21 @@ class Construction:
         return [[line1.get_equation([x, y]), line2.get_equation([x, y])], p]
 
     def intersect_two_circles(self, circle1, circle2, intersecting_point=False):
+        equations = []
         if intersecting_point:
             p1 = self.create_point()
             p2 = intersecting_point
             self.update_points(p1)
+            d = self.get_new_d(p1, p2)
+            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([circle1.get_equation([p1.x, p1.y]), circle2.get_equation([p1.x, p1.y]), distance_equation])
         else:
             p1 = self.create_point()
             p2 = self.create_point()
             self.update_points(p1, p2)
-        x1 = p1.x
-        y1 = p1.y
-        x2 = p2.x
-        y2 = p2.y
-        d = self.get_new_d(p1, p2)
+            d = self.get_new_d(p1, p2)
+            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([circle1.get_equation([p1.x, p1.y]), circle2.get_equation([p1.x, p1.y]), circle1.get_equation([p2.x, p2.y]), circle2.get_equation([p2.x, p2.y]), distance_equation])
         # m1, n1 = circle1.center.x, circle1.center.y
         # m2, n2 = circle2.center.x, circle2.center.y
         # r1_sqr = circle1.squared_radius
@@ -183,36 +185,39 @@ class Construction:
         # self.optimized_eqs.extend([(x1*(m1 - m2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) - y2*(n1 - n2)*(m1**3 - 3*m1**2*m2 + 3*m1*m2**2 + m1*n1**2 - 2*m1*n1*n2 + m1*n2**2 - m2**3 - m2*n1**2 + 2*m2*n1*n2 - m2*n2**2) + (m1 - m2)*(-m1**4 + 2*m1**3*m2 + 2*m1**2*n1*n2 - 2*m1**2*n2**2 + m1**2*r1_sqr - m1**2*r2_sqr - 2*m1*m2**3 - 2*m1*m2*n1**2 + 2*m1*m2*n2**2 - 2*m1*m2*r1_sqr + 2*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 2*m2**2*n1*n2 + m2**2*r1_sqr - m2**2*r2_sqr + n1**4 - 2*n1**3*n2 - n1**2*r1_sqr + n1**2*r2_sqr + 2*n1*n2**3 + 2*n1*n2*r1_sqr - 2*n1*n2*r2_sqr - n2**4 - n2**2*r1_sqr + n2**2*r2_sqr)/2), (-m1**2*n1 - m1**2*n2 + 2*m1*m2*n1 + 2*m1*m2*n2 - m2**2*n1 - m2**2*n2 - n1**3 + n1**2*n2 + n1*n2**2 + n1*r1_sqr - n1*r2_sqr - n2**3 -
         #                           n2*r1_sqr + n2*r2_sqr + (y1 + y2)*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2)), (-m1**2 + m2**2 - n1**2 + n2**2 + r1_sqr - r2_sqr + 2*x2*(m1 - m2) + 2*y2*(n1 - n2)), (m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 + 2*m2**2*n2**2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 2*n1**2*n2**2 - 2*n1**2*r1_sqr + 2*n1**2*r2_sqr + n2**4 + 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2 + 4*y2**2*(m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2) - 4*y2*(m1**2*n1 + m1**2*n2 - 2*m1*m2*n1 - 2*m1*m2*n2 + m2**2*n1 + m2**2*n2 + n1**3 - n1**2*n2 - n1*n2**2 - n1*r1_sqr + n1*r2_sqr + n2**3 + n2*r1_sqr - n2*r2_sqr))])
         # # Variable*distance = 1:
-        distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
+        # distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
         # self.optimized_eqs.append((d*(m1**4 - 4*m1**3*m2 + 6*m1**2*m2**2 + 2*m1**2*n1**2 - 4*m1**2*n1*n2 + 2*m1**2*n2**2 - 2*m1**2*r1_sqr - 2*m1**2*r2_sqr - 4*m1*m2**3 - 4*m1*m2*n1**2 + 8*m1*m2*n1*n2 - 4*m1*m2*n2**2 + 4*m1*m2*r1_sqr + 4*m1*m2*r2_sqr + m2**4 + 2*m2**2*n1**2 - 4*m2**2*n1*n2 + 2*m2**2*n2 **
         #                           2 - 2*m2**2*r1_sqr - 2*m2**2*r2_sqr + n1**4 - 4*n1**3*n2 + 6*n1**2*n2**2 - 2*n1**2*r1_sqr - 2*n1**2*r2_sqr - 4*n1*n2**3 + 4*n1*n2*r1_sqr + 4*n1*n2*r2_sqr + n2**4 - 2*n2**2*r1_sqr - 2*n2**2*r2_sqr + r1_sqr**2 - 2*r1_sqr*r2_sqr + r2_sqr**2) + m1**2 - 2*m1*m2 + m2**2 + n1**2 - 2*n1*n2 + n2**2))
         # Exact distance:
         # D_squared = (circle1.center.x - circle2.center.x)**2 + (circle1.center.y - circle2.center.y)**2
         # distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) - 4*circle1.squared_radius - ((circle1.squared_radius - circle2.squared_radius + D_squared)**2)/D_squared)
-        return [[circle1.get_equation([x1, y1]), circle2.get_equation([x1, y1]), circle1.get_equation([x2, y2]), circle2.get_equation([x2, y2]), distance_equation], p1, p2]
+        return [equations, p1, p2]
 
     def intersect_line_circle(self, line, circle, intersecting_point=False, point_coordinator=None):
         # If point_coordinator: [equations, further_point, closer_point] in order to sum segments easily
+        equations = []
         if intersecting_point:
             p1 = self.create_point()
             p2 = intersecting_point
             self.update_points(p1)
+            d = self.get_new_d(p1, p2)
+            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation([p1.x, p1.y]), distance_equation])
         else:
             p1 = self.create_point()
             p2 = self.create_point()
             self.update_points(p1, p2)
-        x1 = p1.x
-        y1 = p1.y
-        x2 = p2.x
-        y2 = p2.y
+            d = self.get_new_d(p1, p2)
+            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation([p1.x, p1.y]), line.get_equation([p2.x, p2.y]), circle.get_equation([p2.x, p2.y]), distance_equation])
         # a, b, c = line.a(), line.b(), line.c()
         # r_squared = circle.squared_radius
         # m, n = circle.center.x, circle.center.y
         # self.optimized_eqs.extend([(2*a**2*b*n + a**2*c - 2*a*b**2*m + a*x1*(a**2 + b**2) - b**2*c - b*y2*(a**2 + b**2)), (-2*a**2*n + 2*a*b*m + 2*b*c + (
         #     a**2 + b**2)*(y1 + y2)), (a*x2 + b*y2 + c), (a**2*m**2 + a**2*n**2 - a**2*r_squared + 2*a*c*m + c**2 + y2**2*(a**2 + b**2) + 2*y2*(-a**2*n + a*b*m + b*c))])
         # # Variable*distance = 1:
-        d = self.get_new_d(p1, p2)
-        distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
+        # d = self.get_new_d(p1, p2)
+        # distance_equation = simplify(((x1-x2)**2 + (y1-y2)**2) * d - 1)
         # self.optimized_eqs.append(d*(-4*a**2*m**2 + 4*a**2*r_squared - 8*a*b*m*n -
         #                           8*a*c*m - 4*b**2*n**2 + 4*b**2*r_squared - 8*b*c*n - 4*c**2) - a**2 - b**2)
         # Exact distance:
@@ -222,9 +227,8 @@ class Construction:
             c1 = point_coordinator.x
             d1 = point_coordinator.y
             coordinator_equation = simplify(
-                (x2-c1)**2 + (y2-d1)**2 - ((x1-c1)**2+(y1-d1)**2) - self.get_new_d()**2)
-            return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation, coordinator_equation], p1, p2]
-        return [[line.get_equation([x1, y1]), circle.get_equation([x1, y1]), line.get_equation([x2, y2]), circle.get_equation([x2, y2]), distance_equation], p1, p2]
+                (p2.x-c1)**2 + (p2.y-d1)**2 - ((p1.x-c1)**2+(p1.y-d1)**2) - self.get_new_d()**2)
+        return [equations, p1, p2]
 
     def not_collinear(self, p1, p2, p3):
         """

@@ -12,7 +12,7 @@ p2 = Point(a2, b2)
 p3 = Point(a3, b3)
 # construction
 cons = Construction(p1, p2, p3)
-# cons.not_on_same_line(p1, p2, p3)
+# cons.not_collinear(p1, p2, p3)
 cons.solution.set_input_values(a1=0, b1=0, a2=1, b2=1, a3=2, b3=0)
 line1 = cons.create_line(p1, p2)
 v1 = Vector(p1, p2)
@@ -41,7 +41,7 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
 start_time = time.time()
-system = cons.solution.system
+system = cons.solution.get_system()
 print(system)
 print("Proccesing")
 gb = groebner(system, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6, x7, y7, x8, y8, x9, y9, d10, d9, d8, d7, d6, d5, d4, d3, d2, d1, domain='EX', order='grevlex' )

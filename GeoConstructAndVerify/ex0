@@ -1,4 +1,4 @@
-from sympy import symbols
+from sympy import symbols, groebner
 from basics import Point, Construction
 from utils import midpoint
 import time
@@ -22,6 +22,16 @@ print("Construction system:")
 print(cons.system)
 print(cons.solution.system)
 print(cons.all_vars)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")
+start_time = time.time()
+system = cons.solution.get_system()
+gens = cons.get_generators()
+print(system)
+print("Proccesing")
+gb = groebner(system, gens , domain='EX', order='grevlex' )
+print(gb)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
