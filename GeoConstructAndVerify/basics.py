@@ -1,4 +1,4 @@
-from sympy import Symbol, simplify, Expr, solve, symbols, Symbol, simplify, ring, RR, groebner
+from sympy import Symbol, simplify, Expr, solve, symbols, Symbol, simplify, ring, RR, groebner, expand
 from collections import defaultdict
 
 
@@ -177,7 +177,11 @@ class Construction:
             self.update_points(p1, p2)
             d = self.get_new_d(p1, p2)
             distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
-            equations.extend([circle1.get_equation([p1.x, p1.y]), circle2.get_equation([p1.x, p1.y]), circle1.get_equation([p2.x, p2.y]), circle2.get_equation([p2.x, p2.y]), distance_equation])
+            eq1 = circle1.get_equation([p1.x, p1.y])
+            eq2 = circle2.get_equation([p1.x, p1.y])
+            eq3 = circle1.get_equation([p2.x, p2.y])
+            eq4 = circle2.get_equation([p2.x, p2.y])
+            equations.extend([eq1, simplify(expand(eq1)-expand(eq2)), eq3, simplify(expand(eq3)-expand(eq4)), distance_equation])
         # m1, n1 = circle1.center.x, circle1.center.y
         # m2, n2 = circle2.center.x, circle2.center.y
         # r1_sqr = circle1.squared_radius
@@ -589,7 +593,7 @@ class Geometrical_obj:
 
 
 class Line(Geometrical_obj):
-    def __init__(self, point1, point2, construction):
+    def __init__(self, point1, point2, construction=None):
         super().__init__(construction)
         self.point1 = point1
         self.point2 = point2

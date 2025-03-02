@@ -2,7 +2,7 @@ from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
 from basics import AribitaryPoint, Point, Construction, Square, coincide_points
 
 
-def perpendicular_bisector(point1, point2, only_line=True):
+def perpendicular_bisector(point1, point2, only_line=True, omptimized=True):
     """Constructs the perpendicular bisector of the line segment between two points.
 
     This method finds the perpendicular bisector of the segment defined by `point1`

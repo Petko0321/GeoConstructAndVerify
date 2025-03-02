@@ -13,7 +13,7 @@ p3 = Point(a3, b3)
 # construction
 cons = Construction(p1, p2, p3)
 # cons.not_collinear(p1, p2, p3)
-cons.solution.set_input_values(a1=0, b1=0, a2=1, b2=1, a3=2, b3=0)
+# cons.solution.set_input_values(a1=0, b1=0, a2=1, b2=1, a3=2, b3=0)
 line1 = cons.create_line(p1, p2)
 v1 = Vector(p1, p2)
 v2 = translate(v1, p3)
