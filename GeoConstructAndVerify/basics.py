@@ -72,6 +72,11 @@ class Construction:
     def get_collinear_point(self, object):
         return AribitaryPoint(self, object)
 
+    def get_point(self, x, y):
+        point = Point(x, y, self)
+        self.points.append(point)
+        return point
+
     def create_line(self, point1, point2):
         new_line = Line(point1, point2, self)
         self.objects.add(new_line)
@@ -81,6 +86,11 @@ class Construction:
         new_circle = Circle(center, point_on_circle, self)
         self.objects.add(new_circle)
         return new_circle
+
+    def define_line_by_equation(self, a, b, c):
+        line = Line(None, None, self)
+        line.set_equation(a, b, c)
+        return line
 
     def intersect(self, line_or_circle1, line_or_circle2, only_points: bool = True, point_coordinator=None):
         # self.optimized_eqs = []
@@ -96,52 +106,65 @@ class Construction:
                 equations, point = self.intersect_two_lines(
                     line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
-            first_point, second_point = self.evevaluate_presence_two_circles(line_or_circle1, line_or_circle2)
+            first_point, second_point = self.evevaluate_presence_two_circles(
+                line_or_circle1, line_or_circle2)
             if first_point:
                 if only_points:
                     return [first_point, second_point]
                 else:
                     return [[], first_point, second_point]
             elif second_point:
-                equations, first_point, second_point = self.intersect_two_circles(line_or_circle1, line_or_circle2, second_point)
+                equations, first_point, second_point = self.intersect_two_circles(
+                    line_or_circle1, line_or_circle2, second_point)
             else:
-                equations, first_point, second_point = self.intersect_two_circles(line_or_circle1, line_or_circle2)
+                equations, first_point, second_point = self.intersect_two_circles(
+                    line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Circle):
-            first_point, second_point = self.evaluate_presence_line_circle(line_or_circle1, line_or_circle2)
+            first_point, second_point = self.evaluate_presence_line_circle(
+                line_or_circle1, line_or_circle2)
             if first_point:
                 if only_points:
                     return [first_point, second_point]
                 else:
                     return [[], first_point, second_point]
             elif second_point:
-                equations, first_point, second_point = self.intersect_line_circle(line_or_circle1, line_or_circle2, second_point, point_coordinator)
+                equations, first_point, second_point = self.intersect_line_circle(
+                    line_or_circle1, line_or_circle2, second_point, point_coordinator)
             else:
-                equations, first_point, second_point = self.intersect_line_circle(line_or_circle1, line_or_circle2, point_coordinator=point_coordinator)
+                equations, first_point, second_point = self.intersect_line_circle(
+                    line_or_circle1, line_or_circle2, point_coordinator=point_coordinator)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Line):
-            first_point, second_point = self.evaluate_presence_line_circle(line_or_circle2, line_or_circle1)
+            first_point, second_point = self.evaluate_presence_line_circle(
+                line_or_circle2, line_or_circle1)
             if first_point:
                 if only_points:
                     return [first_point, second_point]
                 else:
                     return [[], first_point, second_point]
             elif second_point:
-                equations, first_point, second_point = self.intersect_line_circle(line_or_circle2, line_or_circle1, second_point, point_coordinator)
+                equations, first_point, second_point = self.intersect_line_circle(
+                    line_or_circle2, line_or_circle1, second_point, point_coordinator)
             else:
-                equations, first_point, second_point = self.intersect_line_circle(line_or_circle2, line_or_circle1, point_coordinator=point_coordinator)
+                equations, first_point, second_point = self.intersect_line_circle(
+                    line_or_circle2, line_or_circle1, point_coordinator=point_coordinator)
         else:
+            print(line_or_circle1)
+            print(line_or_circle2)
             raise ValueError("Invalid geometrical object type!")
         equations = [eq for eq in equations if eq not in set(self.system)]
         self.update_solution(equations)
         self.system.extend(equations)
-        
+
         # for visualization purposes
         for eq in equations:
             print(eq)
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
-            print(f"--> coordinates ({point.x},{point.y}) of the intersecting point")
+            print(
+                f"--> coordinates ({point.x},{point.y}) of the intersecting point")
         else:
-            print(f"--> coordinates ({first_point.x},{first_point.y}), ({second_point.x},{second_point.y}) of the two intersecting points")
-        # return result    
+            print(
+                f"--> coordinates ({first_point.x},{first_point.y}), ({second_point.x},{second_point.y}) of the two intersecting points")
+        # return result
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             if only_points:
                 return point
@@ -169,19 +192,23 @@ class Construction:
             p2 = intersecting_point
             self.update_points(p1)
             d = self.get_new_d(p1, p2)
-            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
-            equations.extend([circle1.get_equation([p1.x, p1.y]), circle2.get_equation([p1.x, p1.y]), distance_equation])
+            distance_equation = simplify(
+                ((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([circle1.get_equation(
+                [p1.x, p1.y]), circle2.get_equation([p1.x, p1.y]), distance_equation])
         else:
             p1 = self.create_point()
             p2 = self.create_point()
             self.update_points(p1, p2)
             d = self.get_new_d(p1, p2)
-            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            distance_equation = simplify(
+                ((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
             eq1 = circle1.get_equation([p1.x, p1.y])
             eq2 = circle2.get_equation([p1.x, p1.y])
             eq3 = circle1.get_equation([p2.x, p2.y])
             eq4 = circle2.get_equation([p2.x, p2.y])
-            equations.extend([eq1, simplify(expand(eq1)-expand(eq2)), eq3, simplify(expand(eq3)-expand(eq4)), distance_equation])
+            equations.extend([eq1, simplify(expand(eq1)-expand(eq2)),
+                             eq3, simplify(expand(eq3)-expand(eq4)), distance_equation])
         # m1, n1 = circle1.center.x, circle1.center.y
         # m2, n2 = circle2.center.x, circle2.center.y
         # r1_sqr = circle1.squared_radius
@@ -205,15 +232,19 @@ class Construction:
             p2 = intersecting_point
             self.update_points(p1)
             d = self.get_new_d(p1, p2)
-            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
-            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation([p1.x, p1.y]), distance_equation])
+            distance_equation = simplify(
+                ((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation(
+                [p1.x, p1.y]), distance_equation])
         else:
             p1 = self.create_point()
             p2 = self.create_point()
             self.update_points(p1, p2)
             d = self.get_new_d(p1, p2)
-            distance_equation = simplify(((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
-            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation([p1.x, p1.y]), line.get_equation([p2.x, p2.y]), circle.get_equation([p2.x, p2.y]), distance_equation])
+            distance_equation = simplify(
+                ((p1.x-p2.x)**2 + (p1.y-p2.y)**2) * d - 1)
+            equations.extend([line.get_equation([p1.x, p1.y]), circle.get_equation(
+                [p1.x, p1.y]), line.get_equation([p2.x, p2.y]), circle.get_equation([p2.x, p2.y]), distance_equation])
         # a, b, c = line.a(), line.b(), line.c()
         # r_squared = circle.squared_radius
         # m, n = circle.center.x, circle.center.y
@@ -231,7 +262,8 @@ class Construction:
             c1 = point_coordinator.x
             d1 = point_coordinator.y
             coordinator_equation = simplify(
-                (p2.x-c1)**2 + (p2.y-d1)**2 - ((p1.x-c1)**2+(p1.y-d1)**2) - self.get_new_d()**2)
+                (p1.x-c1)**2 + (p1.y-d1)**2 - ((p2.x-c1)**2+(p2.y-d1)**2) - self.get_new_d()**2)
+            equations.append(coordinator_equation)
         return [equations, p1, p2]
 
     def not_collinear(self, p1, p2, p3):
@@ -258,32 +290,31 @@ class Construction:
         """
         d = self.get_new_d(p1, p2)
         self.add_equation(d*((p1.x-p2.x)**2+(p1.y-p2.y)**2)-1)
-        
+
     def set_parallel(self, line1, line2):
         """
         This method ensures that two lines determined by two input or arbitrary points are parallel 
         by enforcing the necessary and sufficient condition to be satisfied.
-        
+
         Given two lines g1: a1x + b1y + c1 = 0 and g2: a2x + b2y + c2 = 0
         g1||g2 <=> i) a1b2 = a2b1 and ii) c1 ≠ c2 (ensures they do not coincide)
-        
+
         This enables the construction of trapezoids and many various constructions.
         """
         self.add_equation(line1.a()*line2.b() - line1.b()*line2.a())
         self.add_equation(self.get_new_d(line1.c()-line2.c())-1)
-    
+
     def set_perpendicular(self, line1, line2):
         """
         This method ensures that two lines determined by two input or arbitrary points are perpendicular 
         by enforcing the necessary and sufficient condition to be satisfied.
-        
+
          Given two lines g1: a1x + b1y + c1 = 0 and g2: a2x + b2y + c2 = 0
         g1_|_g2 <=> i) a1a2 + b1b2 = 0
-        
+
         This enables the construction of rhombus and many various constructions.
         """
         self.add_equation(line1.a()*line2.a()+line1.b()*line2.b())
-        
 
     def get_d(self, point1, point2):
         for d in self.distances:
@@ -291,7 +322,7 @@ class Construction:
                 return d[0]
 
     def get_generators(self):
-        return self.solution.synthetic_vars + self.solution.auxiliary_vars
+        return self.solution.synthetic_vars + self.solution.auxiliary_vars  + list(reversed(self.solution.distances))
 
     def evaluate_presence_of_intersecting_point(self, line1, line2):
         """
@@ -395,15 +426,15 @@ class Construction:
 
     def get_new_var(self):
         symb = Symbol(f'x{self.new_variable_counter//2+1}' if self.new_variable_counter %
-                      2 == 0 else f'y{self.new_variable_counter//2+1}')
+                      2 == 0 else f'y{self.new_variable_counter//2+1}', real=True)
         self.new_variable_counter += 1
         return symb
 
     def get_new_d(self, point1=None, point2=None):
-        symb = Symbol(f'd{self.last_d_index + 1}')
+        symb = Symbol(f'd{self.last_d_index + 1}', real=True)
         self.last_d_index += 1
         self.all_vars.append(symb)
-        self.solution.auxiliary_vars.append(symb)
+        self.solution.distances.append(symb)
         self.distances.append([symb, point1, point2])
         return symb
 
@@ -434,6 +465,7 @@ class Solution:
         self.output_vars = []
         self.auxiliary_vars = []
         self.synthetic_vars = []
+        self.distances = []
         self.all_vars = []
         self.system = []
         self.values = {}
@@ -480,10 +512,9 @@ class Solution:
 
     def get_system(self):
         return [eq.subs(self.values) for eq in self.construction.system]
-    
+
     def set_ouput_variables(self, *output_vars):
         self.output_vars.extend(output_vars)
-
 
         # def custom_order(self, monomial):
     #     # Define the custom monomial order
@@ -517,7 +548,6 @@ class Point:
         return hash((self.x, self.y))
 
     def lie_on(self, obj):
-        print(obj)
         if simplify(obj.get_equation([self.x, self.y])) == 0:
             return True
         # elif object.get_equation([self.x, self.y]) in self.construction.system:
@@ -597,33 +627,41 @@ class Line(Geometrical_obj):
         super().__init__(construction)
         self.point1 = point1
         self.point2 = point2
-        self.collinear_points.add(point1)
-        self.collinear_points.add(point2)
-        if coincide_points(point1, point2):
-            raise ValueError(
-                f"The line is not determined as the two given points ({point1.x},{point1.y}) and ({point2.x},{point2.y}) coincide.")
-        x1, y1 = self.point1.x, self.point1.y
-        x2, y2 = self.point2.x, self.point2.y
-        # Coefficients A, B, C for the line equation Ax + By + C = 0
-        A = y1 - y2
-        B = x2 - x1
-        C = x1 * y2 - x2 * y1
-        self.equation = simplify(A * Symbol('x') + B * Symbol('y') + C)
+        if point1 == None:
+            self.a = 0
+            self.b = 0
+            self.c = 0
+            self.equation = 0
+        else:
+            self.collinear_points.add(point1)
+            self.collinear_points.add(point2)
+            if coincide_points(point1, point2):
+                raise ValueError(
+                    f"The line is not determined as the two given points ({point1.x},{point1.y}) and ({point2.x},{point2.y}) coincide.")
+            x1, y1 = self.point1.x, self.point1.y
+            x2, y2 = self.point2.x, self.point2.y
+            # Coefficients a, b, c for the line equation ax + by + c = 0
+            self.a = y1 - y2
+            self.b = x2 - x1
+            self.c = x1 * y2 - x2 * y1
+            self.equation = simplify(
+                self.a * Symbol('x') + self.b * Symbol('y') + self.c)
 
     def get_equation(self, variables=None):
         if variables == None:
             return self.equation
-        # Return the equation in the form Ax + By + C = 0
+        # Return the equation in the form ax + by + c = 0
         return self.equation.subs({Symbol('x'): variables[0], Symbol('y'): variables[1]})
 
-    def a(self):
-        return self.point1.y - self.point2.y
-
-    def b(self):
-        return self.point2.x - self.point1.x
-
-    def c(self):
-        return self.point1.x * self.point2.y - self.point2.x * self.point1.y
+    def set_equation(self, a, b, c):
+        if self.point1 == None:
+            self.a = a
+            self.b = b
+            self.c = c
+            self.equation = simplify(
+                self.a * Symbol('x') + self.b * Symbol('y') + self.c)
+        else:
+            print("Cannot set equation of line initially defined by two points!")
 
 
 class Circle(Geometrical_obj):

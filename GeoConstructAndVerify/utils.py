@@ -2,7 +2,7 @@ from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
 from basics import AribitaryPoint, Point, Construction, Square, coincide_points
 
 
-def perpendicular_bisector(point1, point2, only_line=True, omptimized=True):
+def perpendicular_bisector(point1, point2, only_line=True, optimized=True):
     """Constructs the perpendicular bisector of the line segment between two points.
 
     This method finds the perpendicular bisector of the segment defined by `point1`
@@ -22,12 +22,18 @@ def perpendicular_bisector(point1, point2, only_line=True, omptimized=True):
     if point1.construction == None or point1.construction != point2.construction:
         raise ValueError("The objects have to be in the same construction!")
     construction: Construction = point1.construction
-    c1 = construction.create_circle(point1, point2)
-    c2 = construction.create_circle(point2, point1)
-    equations, p1, p2 = construction.intersect(c1, c2, False)
-    perpendicular_bisector = construction.create_line(p1, p2)
+    if optimized:
+        a1, b1, a2, b2 = point1.x, point1.y, point2.x, point2.y
+        perpendicular_bisector = construction.define_line_by_equation(
+            a1-a2, b1-b2, (a2**2-a1**2+b2**2-b1**2)/2)
+        equations = []
+        p1, p2 = None, None
+    else:
+        c1 = construction.create_circle(point1, point2)
+        c2 = construction.create_circle(point2, point1)
+        equations, p1, p2 = construction.intersect(c1, c2, False)
+        perpendicular_bisector = construction.create_line(p1, p2)
     # construction.optimization_equations.extend(p1.x)
-
     if only_line:
         return perpendicular_bisector
     else:
@@ -40,7 +46,7 @@ def perpendicular_bisector(point1, point2, only_line=True, omptimized=True):
     # But it's too slow
 
 
-def midpoint(point1, point2):
+def midpoint(point1, point2, opimized=True):
     """Finds the midpoint of two given points.
 
     Parameters:
@@ -53,6 +59,8 @@ def midpoint(point1, point2):
     if point1.construction == None or point1.construction != point2.construction:
         raise ValueError("The objects have to be in the same construction!")
     construction: Construction = point1.construction
+    if opimized:
+        return construction.get_point((point1.x+point2.x)/2, (point1.y+point2.y)/2)
     line1 = construction.create_line(point1, point2)
     perpendicular_bisector1 = perpendicular_bisector(point1, point2)
     p = construction.intersect(line1, perpendicular_bisector1)
@@ -143,9 +151,7 @@ def perpendicular_line(point, line, point_is_on_line: bool = None, only_line: bo
 
 
 def parallel_line(point, line, only_line=True):
-    """Constructs a line parallel to a given line through a specified point.
-
-    This method creates a parallel line passing through a point that does not lie on the given line.
+    """This method creates a parallel line passing through a point that does not lie on the given line.
 
     Parameters:
     - point: The point through which the parallel line will pass.
@@ -188,7 +194,7 @@ class Vector:
         return ((self.starting_point.x - self.ending_point.x)**2 + (self.starting_point.y-self.ending_point.y)**2)**(1/2)
 
 
-def translate_vector(vector, point, only_vector=True):
+def translate_vector(vector, point, only_vector=True, optimized=True):
     """Translates a vector using a given point.
 
     This method constructs a parallelogram to determine the translated vector.
@@ -211,25 +217,28 @@ def translate_vector(vector, point, only_vector=True):
     p1 = vector.starting_point
     p2 = vector.ending_point
     p3 = point
-    line1 = construction.create_line(p1, p2)
-    line2 = construction.create_line(p1, p3)
     all_equations = []
-    equations, _, _, line3 = parallel_line(p3, line1, False)
-    all_equations.extend(equations)
-    equations, _, _, line4 = parallel_line(p2, line2, False)
-    all_equations.extend(equations)
-    equations, p = construction.intersect(line3, line4, False)
-    all_equations.extend(equations)
-    wanted_vector = Vector(p3, p)
+    if optimized:
+        p = construction.get_point(p3.x+p2.x-p1.x, p3.y+p2.y-p1.y, )
+        wanted_vector = Vector(p3, p)
+    else:
+        line1 = construction.create_line(p1, p2)
+        line2 = construction.create_line(p1, p3)
+        equations, _, _, line3 = parallel_line(p3, line1, False)
+        all_equations.extend(equations)
+        equations, _, _, line4 = parallel_line(p2, line2, False)
+        all_equations.extend(equations)
+        equations, p = construction.intersect(line3, line4, False)
+        all_equations.extend(equations)
+        wanted_vector = Vector(p3, p)
     if only_vector:
         return wanted_vector
     else:
         return [all_equations, p, wanted_vector]
 
 
-def translate(vector, point, only_vector=True):
+def translate(vector, point, only_vector=True, optimized=True):
     """Translate a vector method (enhanced).
-    Returns:
 
     Parameters:
     - vector: The vector to be translated.
@@ -246,30 +255,32 @@ def translate(vector, point, only_vector=True):
     p1 = vector.starting_point
     p2 = vector.ending_point
     p3 = point
-    line1 = construction.create_line(p1, p2)
-    if p3.lie_on(line1):
-        print("The point lies on the line")
-        all_equations = []
-        equations, _, v1 = translate_vector(
-            vector, construction.get_arbitrary_point(line1, 1), False)
-        all_equations.extend(equations)
-        equations, p, wanted_vector = translate_vector(v1, point, False)
-        all_equations.extend(equations)
-        result = [all_equations, p, wanted_vector]
+    all_equations = []
+    if optimized:
+        p = construction.get_point(p3.x+p2.x-p1.x, p3.y+p2.y-p1.y)
+        wanted_vector = Vector(p3, p)
     else:
-        print("The point does not lie on the line")
-        result = translate_vector(vector, point, False)
+        line1 = construction.create_line(p1, p2)
+        if p3.lie_on(line1):
+            print("The point lies on the line")
+            equations, _, v1 = translate_vector(
+                vector, construction.get_arbitrary_point(line1, 1), False, False)
+            all_equations.extend(equations)
+            equations, p, wanted_vector = translate_vector(
+                v1, point, False, False)
+            all_equations.extend(equations)
+        else:
+            print("The point does not lie on the line")
+            all_equations, p, wanted_vector = translate_vector(vector, point, False, False)
     # print(f"The wanted vectror is from ({wanted_vector.starting_point.x}, {wanted_vector.starting_point.y}) to ({wanted_vector.ending_point.x}, {wanted_vector.ending_point.y})")
     if only_vector:
-        return result[2]
-    return result
+        return wanted_vector
+    return all_equations, p, wanted_vector
 
 
 def compass(point1, point2, point3, only_circle=True):
-    """Constructs a circle centered at a given point with a specified radius.
-
-    The circle is centered at `point3` with a radius equal to the distance
-    between `point2` and `point3`.
+    """This function constructs a circle that is centered at `point3` with a radius equal to the distance
+    between `point1` and `point2`.
 
     Parameters:
     - point1: A reference point used to determine the radius.
