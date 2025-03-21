@@ -1,6 +1,6 @@
 from basics import Point, Construction, Polygon
 from utils import parallel_line, compass, circle_by_diameter, perpendicular_line
-from sympy import symbols, groebner, solve, S
+from sympy import symbols, groebner, solve, nsolve
 import time
 # Construct a line parallel to the bases of a trapezoid that divides it into two similar trapezoids.
 # initial points
@@ -9,15 +9,14 @@ p1 = Point(a1, b1)
 p2 = Point(a2, b2)
 p3 = Point(a3, b3)
 p4 = Point(a4, b4)
-trapezoid = Polygon(p1,p2,p3,p4)
-#construction
+trapezoid = Polygon(p1, p2, p3, p4)
+# construction
 start_time = time.time()
 cons = Construction(trapezoid)
-cons.solution.set_input_values(a1=0, b1=0, a2=4, b2=0, a3=3, b3=3, a4=2, b4=3)
 l1 = cons.create_line(p1, p2)
 l2 = cons.create_line(p1, p3)
 l3 = cons.create_line(p1, p4)
-cr1 = cons.create_circle(p3,p4)
+cr1 = cons.create_circle(p3, p4)
 _, p5 = cons.intersect(cr1, l2, point_coordinator=p1)
 # closer to p1 => lies on the diagonal
 l4 = cons.create_line(p5, p2)
@@ -50,19 +49,29 @@ print(f"Output object: {cons.output_object[0].equation}")
 print("Construction system:")
 print(cons.system)
 print(cons.all_vars)
+cons.solution.set_input_values(a1=0, b1=0, a2=4, b2=0, a3=3, b3=3, a4=2, b4=3)
 system = cons.solution.get_system()
 print(system)
 start_time = time.time()
 generators = cons.get_generators()
 print(generators)
+guesses = []
+num = 0
+for gen in generators:
+    guesses.append(num)
+    if num < 8:
+        num += 1
+    else:
+        num = num % 5
+print(guesses)
 print("Proccesing")
-gb = groebner(system, generators, domain='EX', order='grevlex' )
-print(gb)
-solution = solve(gb)
-print(solution)
+print(nsolve(system, generators, guesses))
+# gb = groebner(system, generators, domain='EX', order='grevlex' )
+# print(gb)
+# solution = solve(gb)
+# print(solution)
 end_time = time.time()
-print(line.equation)
+# print(line.equation)
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
 # End example
-

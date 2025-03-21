@@ -442,7 +442,7 @@ class Construction:
         if equation != True:
             self.system.append(equation)
 
-    def set_as_ouput(self, objec):
+    def set_as_output(self, objec):
         self.output_object.append(objec)
         vars = []
         if isinstance(objec, Point):
@@ -453,6 +453,9 @@ class Construction:
         elif isinstance(objec, Circle):
             vars.extend(objec.center.coordinates)
             vars.extend(objec.point_on_circle.coordinates)
+        elif isinstance(objec, list):
+            for i in objec:
+                self.set_as_output(i)
         else:
             raise ValueError("Unsupported geometrical object type")
         self.solution.set_ouput_variables(vars)
