@@ -36,7 +36,7 @@ p11 = cons.intersect(l7, l8)
 l = parallel_line(p11, l1)
 p12 = cons.intersect(l3, l)
 line = cons.create_line(p11, p12)
-cons.set_as_ouput(line)
+cons.set_as_output(line)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
@@ -55,21 +55,21 @@ print(system)
 start_time = time.time()
 generators = cons.get_generators()
 print(generators)
-guesses = []
-num = 0
-for gen in generators:
-    guesses.append(num)
-    if num < 8:
-        num += 1
-    else:
-        num = num % 5
-print(guesses)
-print("Proccesing")
-print(nsolve(system, generators, guesses))
-# gb = groebner(system, generators, domain='EX', order='grevlex' )
-# print(gb)
-# solution = solve(gb)
-# print(solution)
+# guesses = []
+# num = 0
+# for gen in generators:
+#     guesses.append(num)
+#     if num < 8:
+#         num += 1
+#     else:
+#         num = num % 5
+# print(guesses)
+# print("Proccesing")
+# print(nsolve(system, generators, guesses))
+gb = groebner(system, generators, domain='EX', order='grevlex' )
+print(gb)
+solution = solve(gb)
+print(solution)
 end_time = time.time()
 # print(line.equation)
 elapsed_time = end_time - start_time

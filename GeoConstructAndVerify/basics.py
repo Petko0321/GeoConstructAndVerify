@@ -445,20 +445,30 @@ class Construction:
     def set_as_output(self, objec):
         self.output_object.append(objec)
         vars = []
+
+        def add_coordinates(point):
+            nonlocal vars
+            for coordinate in point.coordinates:
+                if isinstance(coordinate, Symbol):
+                    vars.append(coordinate)
+
         if isinstance(objec, Point):
-            vars.extend(objec.coordinates)
+            add_coordinates(objec)
         elif isinstance(objec, Line):
-            vars.extend(objec.point1.coordinates)
-            vars.extend(objec.point2.coordinates)
+            add_coordinates(objec.point1)
+            add_coordinates(objec.point2)
         elif isinstance(objec, Circle):
-            vars.extend(objec.center.coordinates)
-            vars.extend(objec.point_on_circle.coordinates)
+            add_coordinates(objec.center)
+            add_coordinates(objec.point_on_circle)
         elif isinstance(objec, list):
             for i in objec:
                 self.set_as_output(i)
         else:
             raise ValueError("Unsupported geometrical object type")
-        self.solution.set_ouput_variables(vars)
+
+        if vars:
+            self.solution.set_output_variables(*vars)
+            
 
 
 class Solution:
@@ -482,26 +492,6 @@ class Solution:
             else:
                 raise ValueError("Unsupprorted equation type!")
             self.system.append(expr)
-            # for var in construction.all_vars:
-            #     if isinstance(var, Symbol):
-            #         self.all_vars.append(var)
-        # self.synthetic_vars = [
-        #     var for arb_point in self.construction.arbitrary_points for var in arb_point.coordinates
-        # ]
-        # input_vars_set = set(self.input_vars)
-        # output_vars_set = set(self.output_vars)
-        # synthetic_vars_set = set(self.synthetic_vars)
-
-        # seen = set()
-        # self.auxiliary_vars = []
-        # for var in self.all_vars:
-        #     if var not in input_vars_set and var not in output_vars_set and var not in synthetic_vars_set:
-        #         if var not in seen:
-        #             self.auxiliary_vars.append(var)
-        #             seen.add(var)
-        # # ringg = ring(self.all_vars, RR)[0]
-        # order = monomial_key(self.custom_order)
-        # self.reduced_groebner_basis = groebner(self.system, self.all_vars, method="buchberger", order="grlex")
 
     def set_input_values(self, **values):
         """Set values for input and synthetic variables."""
@@ -516,21 +506,9 @@ class Solution:
     def get_system(self):
         return [eq.subs(self.values) for eq in self.construction.system]
 
-    def set_ouput_variables(self, *output_vars):
-        self.output_vars.extend(output_vars)
-
-        # def custom_order(self, monomial):
-    #     # Define the custom monomial order
-    #     synthetic_part = monomial[:len(self.synthetic_vars)]
-    #     output_part = monomial[len(self.synthetic_vars):len(
-    #         self.synthetic_vars) + len(self.output_vars)]
-    #     input_part = monomial[len(self.synthetic_vars) +
-    #                           len(self.output_vars):]
-
-    #     # Priority order: Synthetic > Output > Input
-    #     return (tuple(-exp for exp in synthetic_part),
-    #             tuple(-exp for exp in output_part),
-    #             tuple(-exp for exp in input_part))
+    def set_output_variables(self, *output_vars):
+        for i in output_vars:
+            self.output_vars.append(i)
 
 
 class Point:
@@ -559,7 +537,10 @@ class Point:
             return None
 
     def to_str(self):
-        return f"Point({self.x},{self.y}) : {type(self).__name__}"
+        try:
+            return f"Point({self.x} = {self.x.subs(self.construction.solution.values)},{self.y} = {self.y.subs(self.construction.solution.values)}) : {type(self).__name__}"
+        except KeyError:
+            return f"Point({self.x},{self.y}) : {type(self).__name__}"
     # def str(self):
     #     return self.__hash__
 
@@ -588,7 +569,7 @@ class AribitaryPoint(Point):
                 if isinstance(geometrical_object, Line):
                     construction.add_equation(
                         simplify(geometrical_object.get_equation([self.x, self.y])**2 -
-                                 (geometrical_object.a() ** 2 + geometrical_object.b() ** 2) * distance ** 2)
+                                 (geometrical_object.a ** 2 + geometrical_object.b ** 2) * distance ** 2)
                     )
                 elif isinstance(geometrical_object, Circle):
                     construction.add_equation(
@@ -668,7 +649,7 @@ class Line(Geometrical_obj):
 
 
 class Circle(Geometrical_obj):
-    def __init__(self, center, point_on_circle, construction):
+    def __init__(self, center, point_on_circle, construction=None):
         if coincide_points(center, point_on_circle):
             raise ValueError(
                 f"The circle coincides with its center ({center.x},{center.y})")
