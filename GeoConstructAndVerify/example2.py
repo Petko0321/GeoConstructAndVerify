@@ -9,7 +9,7 @@ p1 = Point(a1, b1)
 p2 = Point(a2, b2)
 # print("Enter n:")
 # n = int(input())
-n = 5
+n = 3
 # construction
 cons = Construction(p1, p2)
 line1 = cons.create_line(p1, p2)
@@ -73,7 +73,7 @@ print(cons.all_vars)
 cons.set_as_output(seperating_points)
 gens = cons.get_generators()
 
-# cons.solution.set_input_values(a1=0, b1=0, a2=5, b2=10)
+cons.solution.set_input_values(a1=0, b1=0, a2=5, b2=10)
 start_time = time.time()
 system = cons.solution.get_system()
 print(system)

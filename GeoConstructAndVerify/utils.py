@@ -1,4 +1,4 @@
-from sympy import solve, symbols, Symbol, Eq, init_printing, simplify
+from sympy import solve, symbols, simplify, fraction, collect, nsimplify
 from basics import AribitaryPoint, Point, Construction, Square, coincide_points
 
 
@@ -89,7 +89,8 @@ def angle_bisector(point1, point2, point3, only_line=True):
     all_equations = []
     line1 = construction.create_line(point2, point3)
     cr1 = construction.create_circle(point2, point1)
-    equations, p, _ = construction.intersect(cr1, line1, False)
+    equations, _, p = construction.intersect(cr1, line1, False, point3)
+    # closer point to point3 ensures the angle bisecor is internal
     all_equations.extend(equations)
     equations, _, _, angle_bisector = perpendicular_bisector(point1, p, False)
     all_equations.extend(equations)
@@ -387,3 +388,42 @@ def construct_square(point1, point2):
     point4, _ = construction.intersect(cr2, cr3)
     square = Square(point1, point2, point3, point4)
     return Square
+
+def simplify_expressions(expressions):
+    num_polynomials = []
+    denom_polynomials = []
+    for expr in expressions:
+        expr = simplify(expr)
+        num, denom = fraction(expr)
+        num_polynomials.append(num)
+        denom_polynomials.append(denom)
+    return num_polynomials, denom_polynomials
+
+def reduce_quadratics(polynomials, variables):
+    modified_polynomials = []
+    variables = set(variables)
+    
+    for poly in polynomials:
+        updated = False
+        vars = poly.free_symbols
+        coeffs = poly.as_coefficients_dict()
+        for var in (variables & vars):
+            
+            a = poly.coeff(var, 2)
+            b = poly.coeff(var, 1)
+            c = poly.coeff(var, 0)
+            
+            if a != 0:
+                discriminant = simplify(b**2 - 4*a*c)
+                print(discriminant)
+                if discriminant == 0 or discriminant.equals(0) or nsimplify(discriminant) == 0:
+                    root = -b / (2*a)
+                    linear_eq = var - root
+                    modified_polynomials.append(linear_eq)
+                    updated = True
+                    break  
+        
+        if not updated:
+            modified_polynomials.append(poly)
+    
+    return modified_polynomials

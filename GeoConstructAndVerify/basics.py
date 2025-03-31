@@ -3,7 +3,7 @@ from collections import defaultdict
 
 
 class Construction:
-    def __init__(self, *geometric_objects, input_equations=None):
+    def __init__(self, *geometric_objects, input_equations=None, ):
         self.system = []
         self.distances = []
         self.all_vars = []
@@ -30,9 +30,9 @@ class Construction:
 
         self.last_d_index = 0
         # Ensure the input points are distinct
-        for i in range(len(self.points)):
+        for i in range(len(self.points)-1):
+            point1 = self.points[i]
             for j in range(i + 1, len(self.points)):
-                point1 = self.points[i]
                 point2 = self.points[j]
                 self.not_coinciding(point1, point2)
         self.input_eqs = [eq for eq in self.system]
@@ -276,6 +276,14 @@ class Construction:
         # d2 = self.get_d(p1, p3)
         # d3 = self.get_d(p2, p3)
         # self.add_equation(simplify((d2*d3-d1*d2-d1*d3)*self.get_new_d()- 1))
+        # remove redundant polynomials
+        i = 0
+        while i < len(self.system):
+            poly = self.system[i]
+            if self.get_d(p1, p2) in poly.free_symbols or self.get_d(p2, p3) in poly.free_symbols or self.get_d(p1, p3) in poly.free_symbols:
+                self.system.remove(poly)
+                i -= 1
+            i += 1
         a1, b1 = p1.x, p1.y
         a2, b2 = p2.x, p2.y
         a3, b3 = p3.x, p3.y
@@ -297,12 +305,13 @@ class Construction:
         by enforcing the necessary and sufficient condition to be satisfied.
 
         Given two lines g1: a1x + b1y + c1 = 0 and g2: a2x + b2y + c2 = 0
-        g1||g2 <=> i) a1b2 = a2b1 and ii) c1 ≠ c2 (ensures they do not coincide)
+        g1||g2 <=>  i) a1b2 = a2b1 and 
+                    ii) c1 ≠ c2 (ensures they do not coincide)
 
         This enables the construction of trapezoids and many various constructions.
         """
         self.add_equation(line1.a()*line2.b() - line1.b()*line2.a())
-        self.add_equation(self.get_new_d(line1.c()-line2.c())-1)
+        self.add_equation(self.get_new_d()*(line1.c()-line2.c())-1)
 
     def set_perpendicular(self, line1, line2):
         """
@@ -310,7 +319,7 @@ class Construction:
         by enforcing the necessary and sufficient condition to be satisfied.
 
          Given two lines g1: a1x + b1y + c1 = 0 and g2: a2x + b2y + c2 = 0
-        g1_|_g2 <=> i) a1a2 + b1b2 = 0
+        g1_|_g2 <=> a1a2 + b1b2 = 0
 
         This enables the construction of rhombus and many various constructions.
         """
@@ -322,7 +331,7 @@ class Construction:
                 return d[0]
 
     def get_generators(self):
-        return self.solution.synthetic_vars + self.solution.auxiliary_vars  + list(reversed(self.solution.distances))
+        return self.solution.synthetic_vars + self.solution.auxiliary_vars + list(reversed(self.solution.distances))
 
     def evaluate_presence_of_intersecting_point(self, line1, line2):
         """
@@ -468,7 +477,6 @@ class Construction:
 
         if vars:
             self.solution.set_output_variables(*vars)
-            
 
 
 class Solution:
@@ -538,7 +546,7 @@ class Point:
 
     def to_str(self):
         try:
-            return f"Point({self.x} = {self.x.subs(self.construction.solution.values)},{self.y} = {self.y.subs(self.construction.solution.values)}) : {type(self).__name__}"
+            return f"Point({self.x} = {self.construction.solution.get_value(self.x)},{self.y} = {self.construction.solution.get_value(self.y)}) : {type(self).__name__}"
         except KeyError:
             return f"Point({self.x},{self.y}) : {type(self).__name__}"
     # def str(self):

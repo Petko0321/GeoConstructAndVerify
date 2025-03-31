@@ -39,7 +39,7 @@ for point in cons.points:
     print(point.to_str())
 print("Construction system:")
 print(cons.solution.get_system())
-cons.solution.set_input_values(a1=0, b1=0, a2=4, b2=0, a3=1, b3=2)
+# cons.solution.set_input_values(a1=0, b1=0, a2=4, b2=0, a3=1, b3=2)
 gens = cons.get_generators()
 start_time = time.time()
 system = cons.solution.get_system()

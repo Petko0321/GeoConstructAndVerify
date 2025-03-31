@@ -1,11 +1,11 @@
-from basics import Point, Construction, Solution
+from basics import Point, Construction
 from utils import perpendicular_bisector
-from sympy import symbols, groebner, solve, Symbol
+from sympy import symbols, groebner, solve
 import json
 import time
 # Construction of angle bisector
 # given points:
-a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3')
+a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3', real=True)
 p1 = Point(a1, b1)
 p2 = Point(a2, b2)
 p3 = Point(a3, b3)
@@ -20,7 +20,7 @@ circle1 = cons1.create_circle(p1, p3)
 _, p4 = cons1.intersect(line1, circle1, True, p2)
 ang_bis1 = perpendicular_bisector(p3, p4)
 p6 = cons1.intersect(ang_bis1, line12, True)
-cons1.set_as_ouput(p6)
+cons1.set_as_output(p6)
 print("construction 1 completed")
 # visualize the points, the system, and variables
 print("All points:")
@@ -39,10 +39,6 @@ print(cons1.solution.synthetic_vars)
 # cons1.solution.set_input_values(a1=1, b1=1, a2=4, b2=0, a3=2, b3=4)
 system1 = cons1.solution.get_system()
 print(system1)
-del system1[0]
-del system1[0]
-del system1[0]
-print(system1)
 start_time = time.time()
 generators = cons1.get_generators()
 # sol = solve(system1, generators)
@@ -59,9 +55,9 @@ gb_data1 = {
     "order": str(gb1.order),  # Реда (lex, grlex, grevlex)
     "domain": str(gb1.domain)  # Полиномиалното поле (EX, ZZ, QQ и т.н.)
 }
-with open("construction_gb_1.json", "w") as f:
+with open("construction_gb_1_1.json", "w") as f:
     json.dump(gb_data1, f, indent=4)
-print("Гребнеровата база е записана успешно!")
+print("Грьобнеровата база е записана успешно!")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
@@ -86,14 +82,10 @@ for point in cons2.points:
     print(point.to_str())
 print("Construction system:")
 system2 = cons2.solution.get_system()
-del system2[0]
-del system2[0]
-del system2[0]
 print(system2)
 print(cons2.all_vars)
 sol2 = cons2.solution
 print("Solution 2:")
-print(sol2.system)
 print(sol2.input_vars)
 print(sol2.output_vars)
 print(sol2.auxiliary_vars)
@@ -119,9 +111,9 @@ gb_data2 = {
     "order": str(gb2.order),  # Реда (lex, grlex, grevlex)
     "domain": str(gb2.domain)  # Полиномиалното поле (EX, ZZ, QQ и т.н.)
 }
-with open("construction_gb_2.json", "w") as f:
+with open("construction_gb_2_1.json", "w") as f:
     json.dump(gb_data2, f, indent=4)
-print("Гребнеровата база е записана успешно!")
+print("Грьобнеровата база е записана успешно!")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
@@ -159,9 +151,6 @@ print(sol3.synthetic_vars)
 # sol3.system.append(y6*(A1A2 + A1A3)-b2*A1A3 - b3*(A1A2))
 # sol3.set_input_values(a1=1, b1=1, a2=4, b2=0, a3=2, b3=4)
 system3 = sol3.get_system()
-del system3[0]
-del system3[0]
-del system3[0]
 print(system3)
 start_time = time.time()
 generators = cons3.get_generators()
@@ -179,9 +168,9 @@ gb_data3 = {
     "order": str(gb3.order),  # Реда (lex, grlex, grevlex)
     "domain": str(gb3.domain)  # Полиномиалното поле (EX, ZZ, QQ и т.н.)
 }
-with open("construction_gb_3.json", "w") as f:
+with open("construction_gb_3_1.json", "w") as f:
     json.dump(gb_data3, f, indent=4)
-print("Гребнеровата база е записана успешно!")
+print("Грьобнеровата база е записана успешно!")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")

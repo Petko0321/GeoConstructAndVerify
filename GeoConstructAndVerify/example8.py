@@ -67,11 +67,18 @@ print(generators)
 # print("Proccesing")
 # print(nsolve(system, generators, guesses))
 gb = groebner(system, generators, domain='EX', order='grevlex' )
-print(gb)
-solution = solve(gb)
-print(solution)
 end_time = time.time()
-# print(line.equation)
 elapsed_time = end_time - start_time
-print(f"Elapsed time: {elapsed_time:.2f} seconds")
+print(f"Groebner elapsed time: {elapsed_time:.2f} seconds")
+# print(line.equation)
+start_time = time.time()
+list_of_values = solve(gb, generators, dict=True)
+for i in range(len(list_of_values)):
+    cons.solution.values = list_of_values[i]
+    print(cons.solution.values)
+    print(f"{p11.to_str()}")
+    print(f"{p12.to_str()}")
+    end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Solve elapsed time: {elapsed_time:.2f} seconds")
 # End example

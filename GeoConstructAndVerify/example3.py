@@ -44,10 +44,12 @@ print(gb)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
-# for eq in gb:
-#     if (cons.solution.output_vars[0] in eq.free_symbols or cons.solution.output_vars[1] in eq.free_symbols):
-#         print(eq)
-# sol = solve(gb, cons.solution.output_vars)
-# print(sol)
-# cons.solution.values.update(sol)
+for eq in gb:
+    if (cons.solution.output_vars[0] in eq.free_symbols or cons.solution.output_vars[1] in eq.free_symbols):
+        print(eq)
+sol = solve(gb, cons.solution.output_vars)
+print(sol)
+cons.solution.values.update(sol)
+sol = solve(gb, gens)
+print(sol)
 print(f"Output object: {cons.output_object[0].equation.subs(cons.solution.values)}")

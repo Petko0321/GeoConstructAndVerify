@@ -16,7 +16,7 @@ line2 = cons.create_line(p1, p3)
 line3 = cons.create_line(p2, p3)
 ang_bis1 = angle_bisector(p2, p1, p3)
 ang_bis2 = angle_bisector(p1, p2, p3)
-p4 = cons.intersect(ang_bis1, ang_bis1)
+p4 = cons.intersect(ang_bis1, ang_bis2)
 line4 = perpendicular_line(p4, line1, False)
 p5 = cons.intersect(line1, line4)
 cr1 = cons.create_circle(p1, p5)
@@ -27,8 +27,10 @@ _, p6 = cons.intersect(cr1, line2, True, p3)
 # closer point (p6) relative to p3 lies on the side p1p3
 cr3 = cons.create_circle(p3, p6)
 # circle 3
+# p7 = cons.intersect(cr2, cr3)
+# p7 makes computation too slow
 print("construction completed")
-cons.set_as_output(p6)
+cons.set_as_output([p5, p6])
 # visualize the points, the system, and variables
 print("All points:")
 for point in cons.points:
@@ -47,9 +49,10 @@ print(gb)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time:.2f} seconds")
-sol = solve(gb, gens)
-print(sol)
-print(f"Output object: {p6.to_str()}")
-
-
-
+list_of_values = solve(gb, gens, dict=True)
+for i in range(len(list_of_values)):
+    cons.solution.values = list_of_values[i]
+    print(cons.solution.values)
+    print(f"{p5.to_str()}")
+    print(f"{p6.to_str()}")
+# End example

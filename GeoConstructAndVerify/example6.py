@@ -1,5 +1,5 @@
-from sympy import symbols, groebner
-from basics import Point, Construction, Solution
+from sympy import symbols, groebner, solve
+from basics import Point, Construction
 from utils import perpendicular_line, midpoint, compass
 import time
 # Seperate a segment into golden ratio
@@ -42,6 +42,20 @@ gb = groebner(system, gens, domain='EX', order='grevlex')
 print(gb)
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"Elapsed time: {elapsed_time:.2f} seconds")
-print(f"Output object: {p8.to_str()}")
+print(f"Compute Groebner elapsed time: {elapsed_time:.2f} seconds")
+start_time = time.time()
+list_of_values = solve(gb, gens, dict=True)
+for i in range(len(list_of_values)):
+    cons.solution.values = list_of_values[i]
+    print(cons.solution.values)
+    print(f"Output object: {p8.to_str()}")
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Solve Groebner elapsed time: {elapsed_time:.2f} seconds")
+# start_time = time.time()
+# sol = solve(system, gens)
+# print(sol)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Only solve elapsed time: {elapsed_time:.2f} seconds")
 
