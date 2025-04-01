@@ -1,0 +1,17 @@
+include LICENSE
+include README.md
+include requirements.txt
+include pyproject.toml
+
+# Include all files in the constructions directory
+recursive-include constructions *
+
+# Include sample files
+recursive-include samples *.py
+
+# Include any data files in the package directory
+recursive-include geocv *
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *$py.class 

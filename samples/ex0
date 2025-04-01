@@ -1,0 +1,37 @@
+from sympy import symbols, groebner
+from geocv import Point, Construction
+from geocv import midpoint
+import time
+# midpoint of a segment
+# initial points
+start_time = time.time()
+a1, a2, b1, b2 = symbols('a1, a2, b1, b2')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+# construction
+cons = Construction(p1, p2)
+p3 = midpoint(p1, p2)
+print("construction completed")
+print("All points:")
+for point in cons.points:
+    print(point.to_str())
+print("All objects:")
+for obj in cons.objects:
+    print(obj.to_str())
+print("Construction system:")
+print(cons.system)
+print(cons.solution.system)
+print(cons.all_vars)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")
+start_time = time.time()
+system = cons.solution.get_system()
+gens = cons.get_generators()
+print(system)
+print("Proccesing")
+gb = groebner(system, gens , domain='EX', order='grevlex' )
+print(gb)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")

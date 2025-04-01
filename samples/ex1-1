@@ -1,0 +1,26 @@
+from sympy import symbols, solve
+from geocv import Point, Construction, Solution
+from geocv import perpendicular_line
+import time
+
+start_time = time.time()
+# Example of translation of a vector
+# initial distinct points
+a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+p3 = Point(a3, b3)
+# construction
+cons = Construction(p1, p2, p3)
+# cons.not_on_same_line(p1, p2, p3)
+line1 = cons.create_line(p1, p2)
+perp_line1 = perpendicular_line(p3, line1, False, cons, True)
+print("All points:")
+for point in cons.points:
+    print(point.to_str())
+print("Construction system:")
+print(cons.get_system())
+print(cons.all_vars)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time:.2f} seconds")

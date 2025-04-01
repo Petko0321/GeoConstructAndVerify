@@ -1,0 +1,18 @@
+from geocv import Point, Construction, Solution
+from geocv import perpendicular_bisector
+from sympy import symbols, groebner, solve, Symbol
+import json
+import time
+# Construction of angle bisector
+# given points:
+a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3')
+p1 = Point(a1, b1)
+p2 = Point(a2, b2)
+p3 = Point(a3, b3)
+
+# construction 1
+start_time = time.time()
+cons1 = Construction(p1, p2, p3)
+print(cons1.system)
+cons1.not_collinear(p1, p2, p3)
+print(cons1.system)
