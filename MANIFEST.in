@@ -10,7 +10,7 @@ recursive-include constructions *
 recursive-include samples *.py
 
 # Include any data files in the package directory
-recursive-include GeoConstructAndVerify *
+recursive-include geocv *
 global-exclude *.pyc
 global-exclude __pycache__
 global-exclude *.py[cod]

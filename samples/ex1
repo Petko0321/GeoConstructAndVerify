@@ -1,6 +1,6 @@
 from sympy import symbols, solve
-from basics import Point, Construction, Solution
-from utils import Vector, translate
+from geocv import Point, Construction, Solution
+from geocv import Vector, translate
 import time
 
 start_time = time.time()

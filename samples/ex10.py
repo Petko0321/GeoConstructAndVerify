@@ -1,6 +1,6 @@
 import json
 from sympy import symbols, Symbol, sympify, groebner, fraction
-from utils import reduce_quadratics, simplify_expressions
+from geocv import reduce_quadratics, simplify_expressions
 import time
 
 start_time = time.time()

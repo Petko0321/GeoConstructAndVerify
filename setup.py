@@ -23,7 +23,7 @@ for package in find_packages():
         package_data[package] = data_files
 
 setup(
-    name="GeoConstructAndVerify",
+    name="geocv",
     version="0.1.0",
     packages=find_packages(),
     package_data=package_data,

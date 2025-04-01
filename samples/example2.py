@@ -1,5 +1,5 @@
-from basics import Point, Construction
-from utils import Vector, parallel_line, translate
+from geocv import Point, Construction
+from geocv import Vector, parallel_line, translate
 from sympy import symbols, groebner, solve
 import time
 # Example of separating a segment into n equal parts

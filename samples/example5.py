@@ -1,5 +1,5 @@
-from basics import Point, Construction, Circle
-from utils import perpendicular_line, compass, midpoint, parallel_line, construct_square
+from geocv import Point, Construction, Circle
+from geocv import perpendicular_line, compass, midpoint, parallel_line, construct_square
 from sympy import symbols, groebner
 import time
 # Construct a circle with surface equal to the sum of the surfaces of two given circles

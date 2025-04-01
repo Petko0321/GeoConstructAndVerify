@@ -1,5 +1,5 @@
 from sympy import symbols, groebner
-from basics import Point, Construction
+from geocv import Point, Construction
 import time
 # midpoint of a segment
 # initial points

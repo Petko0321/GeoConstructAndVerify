@@ -1,5 +1,5 @@
-from basics import Point, Construction, Polygon
-from utils import parallel_line, compass, circle_by_diameter, perpendicular_line
+from geocv import Point, Construction, Polygon
+from geocv import parallel_line, compass, circle_by_diameter, perpendicular_line
 from sympy import symbols, groebner, solve, nsolve
 import time
 # Construct a line parallel to the bases of a trapezoid that divides it into two similar trapezoids.

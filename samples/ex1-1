@@ -1,6 +1,6 @@
-from sympy import symbols
-from basics import Point, Construction, Solution
-from utils import perpendicular_line
+from sympy import symbols, solve
+from geocv import Point, Construction, Solution
+from geocv import perpendicular_line
 import time
 
 start_time = time.time()

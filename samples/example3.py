@@ -1,5 +1,5 @@
-from basics import Point, Construction, Circle
-from utils import circle_through_3_points, perpendicular_line
+from geocv import Point, Construction, Circle
+from geocv import circle_through_3_points, perpendicular_line
 from sympy import symbols, groebner, solve
 import time
 # Example of construction the radical axis of two circles

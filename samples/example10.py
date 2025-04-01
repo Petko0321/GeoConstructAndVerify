@@ -1,5 +1,5 @@
-from basics import Point, Construction
-from utils import perpendicular_bisector
+from geocv import Point, Construction
+from geocv import perpendicular_bisector
 from sympy import symbols, groebner, solve
 import json
 import time

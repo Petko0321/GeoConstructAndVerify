@@ -1,6 +1,6 @@
 from sympy import symbols, groebner, solve
-from basics import Point, Construction
-from utils import perpendicular_line, midpoint, compass
+from geocv import Point, Construction
+from geocv import perpendicular_line, midpoint, compass
 import time
 # Seperate a segment into golden ratio
 # initial points - endpoints of the segment

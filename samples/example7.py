@@ -1,5 +1,5 @@
-from basics import Point, Construction, Triangle
-from utils import angle_bisector, perpendicular_line, compass, midpoint, parallel_line, construct_square
+from geocv import Point, Construction, Triangle
+from geocv import angle_bisector, perpendicular_line, compass, midpoint, parallel_line, construct_square
 from sympy import symbols, groebner, solve
 import time
 # Construct three circles with centers the vertices of a given triangle each two of which touch eachother

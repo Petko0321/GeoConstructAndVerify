@@ -1,5 +1,5 @@
-from basics import Point, Construction, Triangle
-from utils import perpendicular_line, compass, midpoint, parallel_line, construct_square
+from geocv import Point, Construction, Triangle
+from geocv import perpendicular_line, compass, midpoint, parallel_line, construct_square
 from sympy import symbols, groebner, solve
 import time
 # Construct a square with the same surface as given triangle

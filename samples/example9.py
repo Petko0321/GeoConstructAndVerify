@@ -1,5 +1,5 @@
-from basics import Point, Construction, Solution
-from utils import parallel_line, perpendicular_line, translate, Vector
+from geocv import Point, Construction, Solution
+from geocv import parallel_line, perpendicular_line, translate, Vector
 from sympy import symbols, groebner, solve
 import time
 a1, b1, a2, b2, a3, b3 = symbols('a1 b1 a2 b2 a3 b3')

@@ -1,5 +1,5 @@
 from sympy import symbols, simplify, groebner, solve, Expr, GroebnerBasis, factor
-from basics import Line, Point
+from geocv import Line, Point
 import time
 a1, b1, a2, b2, a3, b3 = symbols('a1, b1, a2, b2, a3, b3', real=True)
 x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6, x7, y7, x8, y8, x9, y9, d10, d9, d8, d7, d6, d5, d4, d3, d2, d1 = symbols('x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6, x7, y7, x8, y8, x9, y9, d10, d9, d8, d7, d6, d5, d4, d3, d2, d1', real=True)
