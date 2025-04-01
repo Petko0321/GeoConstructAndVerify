@@ -1,6 +1,6 @@
 from sympy import symbols, groebner, simplify
-from basics import Point, Construction, Solution
-from utils import Vector, translate
+from GeoConstructAndVerify import Point, Construction, Solution
+from GeoConstructAndVerify import Vector, translate
 import time
 
 start_time = time.time()

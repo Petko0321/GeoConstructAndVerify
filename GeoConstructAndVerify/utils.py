@@ -1,5 +1,5 @@
 from sympy import solve, symbols, simplify, fraction, collect, nsimplify
-from basics import AribitaryPoint, Point, Construction, Square, coincide_points
+from .basics import AribitaryPoint, Point, Construction, Square, coincide_points
 
 
 def perpendicular_bisector(point1, point2, only_line=True, optimized=True):
