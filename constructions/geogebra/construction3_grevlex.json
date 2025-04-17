@@ -33,5 +33,6 @@
         "d1"
     ],
     "order": "grevlex",
-    "domain": "EX"
+    "domain": "EX",
+    "elapsed_time": 2988.9401285648346
 }

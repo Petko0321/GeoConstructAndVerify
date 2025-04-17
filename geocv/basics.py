@@ -92,7 +92,7 @@ class Construction:
         line.set_equation(a, b, c)
         return line
 
-    def intersect(self, line_or_circle1, line_or_circle2, only_points: bool = True, point_coordinator=None):
+    def intersect(self, line_or_circle1, line_or_circle2, only_points: bool = True, point_coordinator=None, return_any_of_two: bool = False):
         # self.optimized_eqs = []
         if isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Line):
             intersecting_point = self.evaluate_presence_of_intersecting_point(
@@ -106,51 +106,60 @@ class Construction:
                 equations, point = self.intersect_two_lines(
                     line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Circle):
-            first_point, second_point = self.evevaluate_presence_two_circles(
-                line_or_circle1, line_or_circle2)
-            if first_point:
-                if only_points:
-                    return [first_point, second_point]
-                else:
-                    return [[], first_point, second_point]
-            elif second_point:
-                equations, first_point, second_point = self.intersect_two_circles(
-                    line_or_circle1, line_or_circle2, second_point)
+            if return_any_of_two:
+                return self.return_any_of_two_intersecting_points(line_or_circle1, line_or_circle2, only_points)
             else:
-                equations, first_point, second_point = self.intersect_two_circles(
+                first_point, second_point = self.evevaluate_presence_two_circles(
                     line_or_circle1, line_or_circle2)
+                if first_point:
+                    if only_points:
+                        return [first_point, second_point]
+                    else:
+                        return [[], first_point, second_point]
+                elif second_point:
+                    equations, first_point, second_point = self.intersect_two_circles(
+                        line_or_circle1, line_or_circle2, second_point)
+                else:
+                    equations, first_point, second_point = self.intersect_two_circles(
+                        line_or_circle1, line_or_circle2)
         elif isinstance(line_or_circle1, Line) and isinstance(line_or_circle2, Circle):
-            first_point, second_point = self.evaluate_presence_line_circle(
-                line_or_circle1, line_or_circle2)
-            if first_point:
-                if only_points:
-                    return [first_point, second_point]
-                else:
-                    return [[], first_point, second_point]
-            elif second_point:
-                equations, first_point, second_point = self.intersect_line_circle(
-                    line_or_circle1, line_or_circle2, second_point, point_coordinator)
+            if return_any_of_two:
+                 return self.return_any_of_two_intersecting_points(line_or_circle1, line_or_circle2, only_points)
             else:
-                equations, first_point, second_point = self.intersect_line_circle(
-                    line_or_circle1, line_or_circle2, point_coordinator=point_coordinator)
+                first_point, second_point = self.evaluate_presence_line_circle(
+                    line_or_circle1, line_or_circle2)
+                if first_point:
+                    if only_points:
+                        return [first_point, second_point]
+                    else:
+                        return [[], first_point, second_point]
+                elif second_point:
+                    equations, first_point, second_point = self.intersect_line_circle(
+                        line_or_circle1, line_or_circle2, second_point, point_coordinator)
+                else:
+                    equations, first_point, second_point = self.intersect_line_circle(
+                        line_or_circle1, line_or_circle2, point_coordinator=point_coordinator)
         elif isinstance(line_or_circle1, Circle) and isinstance(line_or_circle2, Line):
-            first_point, second_point = self.evaluate_presence_line_circle(
-                line_or_circle2, line_or_circle1)
-            if first_point:
-                if only_points:
-                    return [first_point, second_point]
-                else:
-                    return [[], first_point, second_point]
-            elif second_point:
-                equations, first_point, second_point = self.intersect_line_circle(
-                    line_or_circle2, line_or_circle1, second_point, point_coordinator)
+            if return_any_of_two:
+                return self.return_any_of_two_intersecting_points(line_or_circle1, line_or_circle2, only_points)
             else:
-                equations, first_point, second_point = self.intersect_line_circle(
-                    line_or_circle2, line_or_circle1, point_coordinator=point_coordinator)
+                first_point, second_point = self.evaluate_presence_line_circle(
+                    line_or_circle2, line_or_circle1)
+                if first_point:
+                    if only_points:
+                        return [first_point, second_point]
+                    else:
+                        return [[], first_point, second_point]
+                elif second_point:
+                    equations, first_point, second_point = self.intersect_line_circle(
+                        line_or_circle2, line_or_circle1, second_point, point_coordinator)
+                else:
+                    equations, first_point, second_point = self.intersect_line_circle(
+                        line_or_circle2, line_or_circle1, point_coordinator=point_coordinator)
         else:
             print(line_or_circle1)
             print(line_or_circle2)
-            raise ValueError("Invalid geometrical object type!")
+            raise ValueError(f"Invalid geometrical object type! {type(line_or_circle1)} or {type(line_or_circle2)} is not supported!")
         equations = [eq for eq in equations if eq not in set(self.system)]
         self.update_solution(equations)
         self.system.extend(equations)
@@ -261,10 +270,25 @@ class Construction:
         if point_coordinator != None:
             c1 = point_coordinator.x
             d1 = point_coordinator.y
+            # coordinator_equation = simplify(
+            #     self.get_new_d()**2*((p1.x-c1)**2 + (p1.y-d1)**2 - ((p2.x-c1)**2+(p2.y-d1)**2)) - 1)
             coordinator_equation = simplify(
-                (p1.x-c1)**2 + (p1.y-d1)**2 - ((p2.x-c1)**2+(p2.y-d1)**2) - self.get_new_d()**2)
+                ((p1.x-c1)**2 + (p1.y-d1)**2 - ((p2.x-c1)**2+(p2.y-d1)**2)) - self.get_new_d()**2)
             equations.append(coordinator_equation)
         return [equations, p1, p2]
+
+    def return_any_of_two_intersecting_points(self, obj1, obj2, only_points:bool):
+        any_of_two = self.create_point()
+        self.update_points(any_of_two)
+        equations = [obj1.get_equation(
+            [any_of_two.x, any_of_two.y]), obj2.get_equation([any_of_two.x, any_of_two.y])]
+        equations = [eq for eq in equations if eq not in set(self.system)]
+        self.update_solution(equations)
+        self.system.extend(equations)
+        if only_points:
+            return any_of_two
+        else:
+            return [equations, any_of_two]
 
     def not_collinear(self, p1, p2, p3):
         """

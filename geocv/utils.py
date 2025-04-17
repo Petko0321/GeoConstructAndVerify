@@ -412,6 +412,8 @@ def reduce_quadratics(polynomials, variables):
             a = poly.coeff(var, 2)
             b = poly.coeff(var, 1)
             c = poly.coeff(var, 0)
+            print(poly)
+            print(a, b, c)
             
             if a != 0:
                 discriminant = simplify(b**2 - 4*a*c)

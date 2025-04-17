@@ -4,25 +4,46 @@ from geocv import reduce_quadratics, simplify_expressions
 import time
 
 start_time = time.time()
-with open("construction_gb_1_1.json", "r") as f1:
+with open("constructions\\geogebra\\construction3_grevlex.json", "r") as f1:
     gb_data = json.load(f1)
 variables = [symbols(var) for var in gb_data["variables"]]
 polynomials = [sympify(poly) for poly in gb_data["basis"]]
 order = gb_data["order"]
 domain = gb_data["domain"]
 gb1 = groebner(polynomials, *variables, order=order, domain=domain)
-num_polynomials, denom_polynomials = simplify_expressions(gb1)
-print(num_polynomials)
-num_polynomials = reduce_quadratics(num_polynomials, variables)
-print(num_polynomials)
+# num_polynomials, denom_polynomials = simplify_expressions(gb1)
+# print(num_polynomials)
+# a, b, x, y = symbols('a b x y')
+# num_polynomials = [x**2 - 2*a*x + a**2, y - b]
+# num_polynomials = reduce_quadratics(num_polynomials, [a, b, x, y])
+# num_polynomials = reduce_quadratics(num_polynomials, variables)
+# print(num_polynomials)
 # groebner_basis = [None]*len(num_polynomials)
 # for i in range(len(num_polynomials)):
 #     groebner_basis[i] = num_polynomials[i] / denom_polynomials[i]
-# reduced_gb1 = groebner(groebner_basis, *variables, order=order, domain=domain)
+# x1, y1, x2, y2, x3, y3, d6, d5, d4, d3, d2, d1 = variables
+# reduced_gb1 = groebner(gb1, x1, y1, x2, y2, d6, x3, y3, d5, d4, order='lex', domain=domain)
 # print(reduced_gb1)
+# end_time = time.time()
+# elapsed_time = end_time - start_time
+# print(f"Simplify elapsed time: {elapsed_time:.2f} seconds")
+
+x1, y1, x2, y2, x3, y3, x4, y4, d7, d6, d5, d4, d3, d2, d1 = variables
+reduced_gb = groebner(gb1, x1, y1, x2, y2, x3, y3, x4, y4, d6, d5, d7, d4, d3, d2, d1, order='lex', domain=domain)
+print(reduced_gb)
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"Simplify elapsed time: {elapsed_time:.2f} seconds")
+print(f"Lex elapsed time: {elapsed_time:.2f} seconds")
+gb_data3 = {
+    "basis": [str(poly) for poly in reduced_gb],  # Запазване на полиномите като низове
+    "variables": [str(var) for var in reduced_gb.gens],  # Променливите
+    "order": str(reduced_gb.order),  # Реда (lex, grlex, grevlex)
+    "domain": str(reduced_gb.domain),  # Полиномиалното поле (EX, ZZ, QQ и т.н.)
+    "elapsed_time": float(elapsed_time)  # Време на изпълнение
+}
+with open("constructions\\geogebra\\construction3_lex1.json", "w") as f:
+    json.dump(gb_data3, f, indent=4)
+print("Грьобнеровата база е записана успешно!")
 
 # compare1 = []
 # for eq in gb1:

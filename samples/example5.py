@@ -1,5 +1,5 @@
 from geocv import Point, Construction, Circle
-from geocv import perpendicular_line, compass, midpoint, parallel_line, construct_square
+from geocv import perpendicular_line, compass
 from sympy import symbols, groebner
 import time
 # Construct a circle with surface equal to the sum of the surfaces of two given circles
@@ -17,6 +17,7 @@ line1 = cons.create_line(center1, p1)
 line2 = perpendicular_line(center1, line1, True)
 cr3 = compass(center2, p2, center1)
 p3, _ = cons.intersect(line2, cr3)
+# p3 = cons.intersect(line2, cr3, return_any_of_two=True)
 cr = cons.create_circle(p3, p1)
 print(f"Circle({p3.x}, {p3.y}) ({p1.x}, {p1.y})")
 print("circle constructed")
@@ -27,7 +28,7 @@ for point in cons.points:
     print(point.to_str())
 print("Construction system:")
 print(cons.solution.get_system())
-cons.solution.set_input_values(a1=0, b1=0, a2=2, b2=0, a3=5, b3=0, a4=5, b4=1)
+# cons.solution.set_input_values(a1=0, b1=0, a2=2, b2=0, a3=5, b3=0, a4=5, b4=1)
 gens = cons.get_generators()
 start_time = time.time()
 system = cons.solution.get_system()
